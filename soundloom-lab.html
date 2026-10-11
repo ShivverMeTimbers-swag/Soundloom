@@ -2624,7 +2624,14 @@ document.getElementById("canvas").addEventListener("pointerdown", event => {
   event.stopImmediatePropagation();
   const instrument = getCurrentInstrument();
   const {step, row} = getCellFromPointer(event);
-  if (!instrument || step < 0 || row < 0 || row >= TOTAL_ROWS || !hasNote(instrument, step, row)) return;
+  if (!instrument || step < 0 || row < 0 || row >= TOTAL_ROWS) return;
+  if (!hasNote(instrument, step, row)) {
+    // Empty cells are locked and also clear the previous selection, so the
+    // slider cannot accidentally keep editing a note elsewhere.
+    labSelectedVelocityNote = null;
+    labRenderVelocityAppearance();
+    return;
+  }
   labSelectedVelocityNote = {instrumentId: instrument.id, step, row};
   const currentVelocity = labGetVelocity(instrument, step, row);
   labDefaultVelocity = currentVelocity;
