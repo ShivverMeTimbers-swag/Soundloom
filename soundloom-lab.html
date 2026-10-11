@@ -748,9 +748,11 @@ body.dark-mode .welcomeFoot { color: #817a92; }
 .labHint { font-size:11px; opacity:.75; line-height:1.4; margin:5px 0 0; }
 #velocityModeLabel { display:flex; align-items:center; gap:7px; font-size:12px; }
 #velocityValue { font-variant-numeric:tabular-nums; }
-.note.velocity-editing { outline:2px solid #222; outline-offset:-2px; }
+.note.velocity-editing { outline:2px solid #6b35c8; outline-offset:-2px; box-shadow:0 0 0 2px rgba(107,53,200,.28); }
+.note.velocity-selected { outline:3px solid #f59e0b !important; outline-offset:-3px; box-shadow:0 0 0 2px rgba(245,158,11,.35) !important; }
 body.dark-mode .labSection { border-color:#444; }
-body.dark-mode .note.velocity-editing { outline-color:#fff; }
+body.dark-mode .note.velocity-editing { outline-color:#bda0ff; }
+body.dark-mode .note.velocity-selected { outline-color:#ffd166 !important; }
 </style>
 </head>
 
@@ -2529,28 +2531,36 @@ function stepDuration() {
    ========================================================= */
 const labVelocities = Object.create(null);
 let labDefaultVelocity = 0.75;
+let labSelectedVelocityNote = null;
 function labVelocityKey(instrument, step, row) {
   return instrument.id + ":" + step + ":" + row;
 }
 function labGetVelocity(instrument, step, row) {
   const key = labVelocityKey(instrument, step, row);
-  return Object.prototype.hasOwnProperty.call(labVelocities, key) ? labVelocities[key] : labDefaultVelocity;
+  return Object.prototype.hasOwnProperty.call(labVelocities, key) ? labVelocities[key] : 0.75;
 }
 function labSetVelocity(instrument, step, row, value) {
   labVelocities[labVelocityKey(instrument, step, row)] = Math.max(0.1, Math.min(1, value));
 }
 function labRenderVelocityAppearance() {
+  const instrument = getCurrentInstrument();
+  const modeOn = !!document.getElementById("velocityMode")?.checked;
   document.querySelectorAll("#canvas .note").forEach(note => {
-    const pos = note.style.left;
-    const top = note.style.top;
-    const step = Math.round((parseFloat(pos) - 2) / CELL_WIDTH);
-    const row = Math.round((parseFloat(top) - 2) / ROW_HEIGHT);
-    const instrument = getCurrentInstrument();
+    const step = Math.round((parseFloat(note.style.left) - 2) / CELL_WIDTH);
+    const row = Math.round((parseFloat(note.style.top) - 2) / ROW_HEIGHT);
     if (!instrument) return;
     const velocity = labGetVelocity(instrument, step, row);
-    note.style.opacity = String(0.35 + velocity * 0.65);
+    // Make the strength difference obvious: low values are much fainter.
+    note.style.opacity = String(0.15 + velocity * 0.85);
+    note.style.filter = "saturate(" + (0.45 + velocity * 0.75) + ") brightness(" + (0.72 + velocity * 0.28) + ")";
     note.title = "Velocity: " + Math.round(velocity * 100) + "%";
-    note.classList.toggle("velocity-editing", document.getElementById("velocityMode")?.checked && hasNote(instrument, step, row));
+    const exists = hasNote(instrument, step, row);
+    const selected = labSelectedVelocityNote &&
+      labSelectedVelocityNote.instrumentId === instrument.id &&
+      labSelectedVelocityNote.step === step &&
+      labSelectedVelocityNote.row === row;
+    note.classList.toggle("velocity-editing", modeOn && exists);
+    note.classList.toggle("velocity-selected", modeOn && exists && !!selected);
   });
 }
 function labApplyPattern(kind) {
@@ -2589,18 +2599,38 @@ document.getElementById("labGridSpacing").addEventListener("change", event => {
 document.getElementById("labVelocity").addEventListener("input", event => {
   labDefaultVelocity = Number(event.target.value) / 100;
   document.getElementById("velocityValue").textContent = event.target.value + "%";
+  const selected = labSelectedVelocityNote;
+  if (selected) {
+    const instrument = state.instruments.find(item => item.id === selected.instrumentId);
+    if (instrument && hasNote(instrument, selected.step, selected.row)) {
+      labSetVelocity(instrument, selected.step, selected.row, labDefaultVelocity);
+      labRenderVelocityAppearance();
+      autoSave();
+    } else {
+      labSelectedVelocityNote = null;
+      labRenderVelocityAppearance();
+    }
+  }
 });
-document.getElementById("velocityMode").addEventListener("change", labRenderVelocityAppearance);
+document.getElementById("velocityMode").addEventListener("change", () => {
+  if (!document.getElementById("velocityMode").checked) labSelectedVelocityNote = null;
+  labRenderVelocityAppearance();
+});
 document.getElementById("canvas").addEventListener("pointerdown", event => {
-  if (!document.getElementById("velocityMode").checked) return;
-  const instrument = getCurrentInstrument();
-  const {step, row} = getCellFromPointer(event);
-  if (!instrument || !hasNote(instrument, step, row)) return;
+  if (!document.getElementById("velocityMode").checked || event.button !== 0) return;
+  // While velocity mode is active, swallow every grid click so the normal
+  // add/remove/drag editor never receives it—even when the cell is empty.
   event.preventDefault();
   event.stopImmediatePropagation();
-  labSetVelocity(instrument, step, row, labDefaultVelocity);
+  const instrument = getCurrentInstrument();
+  const {step, row} = getCellFromPointer(event);
+  if (!instrument || step < 0 || row < 0 || row >= TOTAL_ROWS || !hasNote(instrument, step, row)) return;
+  labSelectedVelocityNote = {instrumentId: instrument.id, step, row};
+  const currentVelocity = labGetVelocity(instrument, step, row);
+  labDefaultVelocity = currentVelocity;
+  document.getElementById("labVelocity").value = String(Math.round(currentVelocity * 100));
+  document.getElementById("velocityValue").textContent = Math.round(currentVelocity * 100) + "%";
   labRenderVelocityAppearance();
-  autoSave();
 }, true);
 
 function playStep(step) {
