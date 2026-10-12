@@ -3188,10 +3188,12 @@ function updatePlayback() {
           window.soundloomSampleSongEasterEggShown = true;
           const messageDelay = Math.max(0, (state.nextAudioTime - ctx.currentTime) * 1000);
           window.setTimeout(() => {
-            // Stop the sample song before showing the easter-egg message.
-            // This also cancels notes already queued in Web Audio.
-            if (state.playing) stopPlayback(true);
+            // Pause cleanly for the message, but preserve the demo's always-repeat rule.
+            if (state.playing) stopPlayback(false);
             window.alert("Okay, I know it's good, go back to making music.");
+            // Resume the sample song from its beginning after the message is dismissed.
+            window.soundloomSampleSongActive = true;
+            startPlayback();
           }, messageDelay);
         }
       }
