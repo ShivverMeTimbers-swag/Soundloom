@@ -3683,8 +3683,8 @@ document.getElementById("closeHelpBtn").addEventListener("click", () => document
 document.getElementById("helpOverlay").addEventListener("click", event => { if (event.target.id === "helpOverlay") event.currentTarget.classList.remove("show"); });
 // Customizable keyboard shortcuts (stored locally, separate from project files).
 const KEYBIND_STORAGE_KEY = "soundloom_keybinds";
-const DEFAULT_KEYBINDS={instruments:"c",addInstrument:"a",removeInstrument:"r",settings:"q",keybinds:"k",help:"h",save:"s",load:"l",clear:"Escape",close:"Shift",play:" ",previousTab:"ArrowLeft",nextTab:"ArrowRight",drums:"1",melody:"2",chords:"3",editMenu:"e",loopMenu:"o",projectMenu:"p",soundMenu:"v",moreMenu:"m",patternLibrary:"b",noteEditor:"n",gridSpacing:"g",undo:"u",redo:"y",copy:"x",paste:"z",duplicate:"j",patternFourfloor:"F1",patternBreakbeat:"F2",patternBass:"F3",patternArpeggio:"F4",patternChords:"F5"};
-const KEYBIND_LABELS={instruments:"Open Instruments",addInstrument:"Add instrument",removeInstrument:"Remove instrument",settings:"Open Settings",keybinds:"Open Keyboard Controls",help:"Open Help",save:"Save project",load:"Load project",clear:"Clear project (confirm)",close:"Close current popup",play:"Play / Stop",previousTab:"Previous category",nextTab:"Next category",drums:"Switch to Drums",melody:"Switch to Melody",chords:"Switch to Chords",editMenu:"Open Edit menu",loopMenu:"Open Loop menu",projectMenu:"Open Project menu",soundMenu:"Open Sound menu",moreMenu:"Open More menu",patternLibrary:"Open Pattern Library",noteEditor:"Toggle Note Editor",gridSpacing:"Cycle grid spacing",undo:"Undo",redo:"Redo",copy:"Copy pattern",paste:"Paste pattern",duplicate:"Duplicate pattern",patternFourfloor:"Add Four-on-the-floor",patternBreakbeat:"Add Breakbeat",patternBass:"Add Bass pulse",patternArpeggio:"Add Arpeggio",patternChords:"Add Three-chord loop"};
+const DEFAULT_KEYBINDS={instruments:"c",addInstrument:"a",removeInstrument:"r",settings:"q",keybinds:"k",help:"h",save:"s",load:"l",clear:"Escape",close:"Shift",play:" ",previousTab:"ArrowLeft",nextTab:"ArrowRight",drums:"1",melody:"2",chords:"3",editMenu:"e",loopMenu:"o",projectMenu:"p",soundMenu:"v",moreMenu:"m",patternLibrary:"b",noteEditor:"n",gridSpacing:"g",undo:"u",redo:"y",copy:"x",paste:"z",duplicate:"j",patternFourfloor:"F1",patternBreakbeat:"F2",patternBass:"F3",patternArpeggio:"F4",patternChords:"F5",backToStart:"Home",wholeSongView:"w"};
+const KEYBIND_LABELS={instruments:"Open Instruments",addInstrument:"Add instrument",removeInstrument:"Remove instrument",settings:"Open Settings",keybinds:"Open Keyboard Controls",help:"Open Help",save:"Save project",load:"Load project",clear:"Clear project (confirm)",close:"Close current popup/menu",play:"Play / Stop",previousTab:"Previous category",nextTab:"Next category",drums:"Switch to Drums",melody:"Switch to Melody",chords:"Switch to Chords",editMenu:"Open Edit menu",loopMenu:"Open Loop menu",projectMenu:"Open Project menu",soundMenu:"Open Sound menu",moreMenu:"Open More menu",patternLibrary:"Open Pattern Library",noteEditor:"Toggle Note Editor",gridSpacing:"Cycle grid spacing",undo:"Undo",redo:"Redo",copy:"Copy pattern",paste:"Paste pattern",duplicate:"Duplicate pattern",patternFourfloor:"Add Four-on-the-floor",patternBreakbeat:"Add Breakbeat",patternBass:"Add Bass pulse",patternArpeggio:"Add Arpeggio",patternChords:"Add Three-chord loop",backToStart:"Return to welcome screen",wholeSongView:"Open Whole Song View"};
 let keybinds = { ...DEFAULT_KEYBINDS };
 let waitingForKeybind = null;
 try {
@@ -3804,7 +3804,9 @@ document.addEventListener("keydown", event => {
 
   // If a modal is open, the close shortcut closes it; Escape also closes menus.
   if (binding === "close") {
-    if (closeTopOverlay()) event.preventDefault();
+    if (closeTopOverlay()) { event.preventDefault(); return; }
+    closeToolbarMenusExcept();
+    document.querySelectorAll(".toolbarMenu[open]").forEach(menu => menu.open = false);
     return;
   }
   if (binding === "clear") {
@@ -3818,7 +3820,7 @@ document.addEventListener("keydown", event => {
   }
   if (anyOverlayOpen()) return;
 
-  const clickIds={settings:"settingsBtn",help:"helpBtn",save:"saveBtn",load:"loadBtn",play:"playBtn",addInstrument:"addInstrumentBtn",removeInstrument:"removeInstrumentBtn",undo:"undoBtn",redo:"redoBtn",copy:"copyBtn",paste:"pasteBtn",duplicate:"duplicateBtn",keybinds:"keybindsBtn",patternLibrary:"patternLibraryBtn",noteEditor:"noteEditorBtn"};
+  const clickIds={settings:"settingsBtn",help:"helpBtn",save:"saveBtn",load:"loadBtn",play:"playBtn",addInstrument:"addInstrumentBtn",removeInstrument:"removeInstrumentBtn",undo:"undoBtn",redo:"redoBtn",copy:"copyBtn",paste:"pasteBtn",duplicate:"duplicateBtn",keybinds:"keybindsBtn",patternLibrary:"patternLibraryBtn",noteEditor:"noteEditorBtn",backToStart:"backToStartBtn",wholeSongView:"openWholeFromSettings"};
   if(clickIds[binding]){document.getElementById(clickIds[binding]).click();event.preventDefault();return;}
   const menuIds={editMenu:"editMenu",loopMenu:"loopMenu",projectMenu:"projectMenu",soundMenu:"soundMenu",moreMenu:"moreMenu",gridSpacing:"gridSpacingMenu"};
   if(menuIds[binding]){const m=document.getElementById(menuIds[binding]);m.open=!m.open;event.preventDefault();return;}
