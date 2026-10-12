@@ -555,6 +555,87 @@ body:not(.dark-mode) #chordMakerBar { background:#f0e9fb; border-bottom-color:#d
 body:not(.dark-mode) #chordMakerBar select { background:#fffdfb; border-color:#cfc0e8; color:#51416f; }
 body:not(.dark-mode) #chordMakerHint { color:#7c6a9c; }
 
+/* LIGHT MODE POLISH: warm studio surfaces and coordinated controls.
+   Presentation-only overrides; workspace sizing and note-placement behavior stay untouched. */
+body:not(.dark-mode) #topbar .primaryAction {
+  background:#5b4b87;
+  border-color:#5b4b87;
+  color:#fff;
+  box-shadow:0 2px 0 rgba(70,54,105,.12);
+}
+body:not(.dark-mode) #topbar .primaryAction:hover {
+  background:#4e4078;
+  border-color:#4e4078;
+}
+body:not(.dark-mode) .bpmControl {
+  background:#f4effb;
+  border-color:#e1d6f1;
+  color:#51416f;
+}
+body:not(.dark-mode) .toolbarMenu > summary {
+  background:#fffdf9;
+  color:#51465f;
+  border-color:#e1d8e8;
+  box-shadow:0 1px 2px rgba(66,48,85,.04);
+}
+body:not(.dark-mode) .toolbarMenu > summary:hover,
+body:not(.dark-mode) .toolbarMenu[open] > summary {
+  background:#f1ebfa;
+  border-color:#cfc0e8;
+}
+body:not(.dark-mode) .toolbarDropdown {
+  background:#fffdf9;
+  border-color:#e3d9eb;
+  box-shadow:0 14px 34px rgba(75,57,95,.15);
+}
+body:not(.dark-mode) .toolbarDropdown button {
+  background:transparent;
+  color:#40364f;
+}
+body:not(.dark-mode) .toolbarDropdown button:hover,
+body:not(.dark-mode) #labToolsMenu .nestedToolbarMenu > summary:hover,
+body:not(.dark-mode) #labToolsMenu .nestedToolbarMenu[open] > summary {
+  background:#f1ebfa;
+  border-color:#e2d5f3;
+}
+body:not(.dark-mode) #labToolsMenu .nestedToolbarMenu > summary {
+  background:transparent;
+  color:#40364f;
+}
+body:not(.dark-mode) .dropdownDivider { background:#eee5f1; }
+body:not(.dark-mode) .loopPointGroup {
+  background:#fffcf7;
+  border-color:#e8dfeb;
+}
+body:not(.dark-mode) .loopPointGroup > strong,
+body:not(.dark-mode) .menuField { color:#62566f; }
+body:not(.dark-mode) .menuField input,
+body:not(.dark-mode) .loopDropdown .menuField input,
+body:not(.dark-mode) .loopDropdown .menuField select,
+body:not(.dark-mode) #labGridSpacing,
+body:not(.dark-mode) .small-control input,
+body:not(.dark-mode) .small-control select {
+  background:#fffefa;
+  border-color:#ded3e8;
+  color:#383044;
+}
+body:not(.dark-mode) input:focus-visible,
+body:not(.dark-mode) select:focus-visible,
+body:not(.dark-mode) button:focus-visible,
+body:not(.dark-mode) .toolbarMenu > summary:focus-visible {
+  outline:2px solid #a78bd4;
+  outline-offset:2px;
+}
+body:not(.dark-mode) #instrumentName { color:#62566f; }
+body:not(.dark-mode) .panel {
+  background:linear-gradient(145deg,#fffdf9,#faf5ff);
+  border-color:#e3d8ec;
+  box-shadow:0 8px 24px rgba(73,55,92,.06);
+}
+body:not(.dark-mode) .settingRow { border-color:#eee4ed; }
+body:not(.dark-mode) .settingDescription,
+body:not(.dark-mode) .dropdownHint { color:#81758d; }
+
 /* ---------- DARK MODE ---------- */
 
 body.dark-mode {
