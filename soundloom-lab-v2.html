@@ -543,6 +543,10 @@ body:not(.dark-mode) #wholeTimeline { border-color:#dcd2e7; }
 body:not(.dark-mode) .panel { background:#fffdf9; border-color:#e2d8e9; }
 body:not(.dark-mode) .settingRow { border-color:#eee5dc; }
 body:not(.dark-mode) .settingDescription { color:#81768c; }
+/* Chords use a soft lilac accent in the paper-themed light palette, not the old orange. */
+body:not(.dark-mode) #chordMakerBar { background:#f0e9fb; border-bottom-color:#ded1f2; color:#51416f; }
+body:not(.dark-mode) #chordMakerBar select { background:#fffdfb; border-color:#cfc0e8; color:#51416f; }
+body:not(.dark-mode) #chordMakerHint { color:#7c6a9c; }
 
 /* ---------- DARK MODE ---------- */
 
@@ -1211,7 +1215,7 @@ const TIMELINE_CHUNK_STEPS = 64;
 const COLORS = {
   drums: "#8a78d8",
   melody: "#4d9fdb",
-  chords: "#e59b4c"
+  chords: "#a78bd4"
 };
 
 const INSTRUMENTS = [
