@@ -1674,10 +1674,17 @@ function getAudioContext() {
   }
 
   if (state.audioContext.state === "suspended") {
-    state.audioContext.resume();
+    state.audioContext.resume().catch(() => {});
   }
 
   return state.audioContext;
+}
+
+const soundloomScheduledSources = new Set();
+function trackSoundloomSource(source) {
+  soundloomScheduledSources.add(source);
+  source.addEventListener("ended", () => soundloomScheduledSources.delete(source), {once:true});
+  return source;
 }
 
 function midiToFrequency(midi) {
@@ -1756,6 +1763,7 @@ function playTone(row, instrument, duration = .18, velocity = .55, when = null) 
   osc.connect(gain);
   gain.connect(ctx.destination);
 
+  trackSoundloomSource(osc);
   osc.start(startAt);
   osc.stop(startAt + duration + .03);
 }
@@ -1783,6 +1791,7 @@ function playDrum(type, volume = 0.8, when = null) {
 
     osc.connect(gain);
 
+    trackSoundloomSource(osc);
     osc.start(now);
     osc.stop(now + .22);
 
@@ -1817,6 +1826,7 @@ function playDrum(type, volume = 0.8, when = null) {
     noise.connect(filter);
     filter.connect(gain);
 
+    trackSoundloomSource(noise);
     noise.start(now);
     noise.stop(now + .18);
 
@@ -1864,6 +1874,7 @@ function playDrum(type, volume = 0.8, when = null) {
     noise.connect(filter);
     filter.connect(gain);
 
+    trackSoundloomSource(noise);
     noise.start(now);
     noise.stop(
       now +
@@ -3120,6 +3131,13 @@ function startPlayback() {
 
 function stopPlayback(completedNaturally = false) {
   state.playing = false;
+  // Cancel notes already queued in Web Audio, so Stop remains immediate.
+  if (state.audioContext) {
+    for (const source of soundloomScheduledSources) {
+      try { source.stop(state.audioContext.currentTime); } catch (_) {}
+    }
+    soundloomScheduledSources.clear();
+  }
   if (state.animationFrame) {
     cancelAnimationFrame(state.animationFrame);
     clearTimeout(state.animationFrame);
