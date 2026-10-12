@@ -974,6 +974,40 @@ body.dark-mode .keybindKey {
 body.dark-mode .scrollbar-thumb,
 body.dark-mode #scrollViewport::-webkit-scrollbar-thumb { background:#625577; }
 
+/* RESPONSIVE LAYOUT: wrap controls instead of making the whole toolbar a swipe strip.
+   Small-screen workspace adjustment is scoped to this breakpoint. */
+@media (max-width: 700px) {
+  #topbar {
+    height: 108px;
+    min-height: 108px;
+    display:flex;
+    flex-wrap:wrap;
+    align-content:center;
+    gap:5px;
+    padding:6px 8px;
+    overflow-x:hidden;
+    overflow-y:auto;
+  }
+  #logo { display:none; }
+  #backToStartBtn { padding:6px 8px; font-size:12px; }
+  #topbar button { padding:6px 8px; font-size:12px; }
+  #topbar .toolbarMenu > summary { padding:6px 8px; font-size:12px; }
+  #instrumentName { display:none; }
+  .small-control { font-size:12px; }
+  .bpmControl { padding:4px 5px; }
+  #bpmInput { width:46px !important; }
+  #workspace { height:calc(100% - 207px); }
+  #categoryBar { min-height:42px; }
+}
+@media (max-width: 420px) {
+  #topbar { height:128px; min-height:128px; }
+  #workspace { height:calc(100% - 227px); }
+  #topbar #removeInstrumentBtn { display:none; }
+  #topbar #backToStartBtn { display:none; }
+  #topbar .toolbarMenu > summary { padding:6px 6px; }
+  #categoryBar { justify-content:space-around; }
+}
+
 /* ---------- MOBILE ---------- */
 
 @media (max-width: 700px) {
@@ -1456,7 +1490,7 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
   <div class="menuPanel"><h2 id="clearConfirmTitle">Clear the whole song?</h2><p>This removes every note from every instrument. Your instruments will stay.</p><div class="menuActions"><button id="cancelClearBtn" class="active">No, keep it</button><button id="confirmClearBtn">Yes, clear song</button></div></div>
 </div>
 <div id="helpOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="menuPanel"><h2 id="helpTitle">Soundloom Help</h2>
-<p><strong>Make notes:</strong> Click empty grid cells to add notes and existing notes to remove them.</p><p><strong>Instruments:</strong> Use + Instrument to add one and Instruments to switch sounds. Open Edit for undo, redo, copy, paste, and duplicate.</p><p><strong>Pattern Library:</strong> Choose a drum beat, bass pulse, arpeggio, or chord starter. It adds notes to the matching category and keeps existing notes.</p><p><strong>Note Editor:</strong> Opens a right sidebar listing each note's pitch, velocity, measure, and step. Select a note to change its velocity. The grid is locked against adding/removing notes until Note Editor is closed.</p><p><strong>Grid spacing:</strong> Choose Fine, Medium, Default, or Wide. This changes visual spacing, not note timing.</p><p><strong>Keyboard Controls:</strong> Open More → Keyboard Controls to customize shortcuts for menus and actions.</p><p><strong>Play and save:</strong> Use Play, BPM, Save, and Load. Settings contains time signature, key, scale, dark mode, auto-save, and Whole Song View.</p><div class="menuActions"><button id="closeHelpBtn" class="active">Got it</button></div></div></div>
+<p><strong>Make notes:</strong> Click empty grid cells to add notes and existing notes to remove them.</p><p><strong>Instruments:</strong> Use + Instrument to add one and Instruments to switch sounds. Open Edit for undo, redo, copy, paste, and duplicate.</p><p><strong>Pattern Library:</strong> Choose a drum beat, bass pulse, arpeggio, or chord starter. It adds notes to the matching category and keeps existing notes.</p><p><strong>Note Editor:</strong> Opens a right sidebar listing each note's pitch, velocity, measure, and step. Select a note to change its velocity. The grid is locked against adding/removing notes until Note Editor is closed.</p><p><strong>Grid spacing:</strong> Choose Fine, Medium, Default, or Wide. This changes visual spacing, not note timing.</p><p><strong>Keyboard Controls:</strong> Open More → Keyboard Controls to customize shortcuts for menus and actions.</p><p><strong>Play and save:</strong> Use Play, BPM, Save, and Load. Settings contains time signature, key, scale, dark mode, auto-save, and Whole Song View.</p><p><strong>Try a sample:</strong> Load a short demo song to explore a finished beat, melody, and chord progression. Loading replaces the current project only after confirmation.</p><p><strong>Release on Spotify:</strong> Soundloom creates music; to publish it on Spotify, you generally use a music distributor. Start with <a href="https://artists.spotify.com/get-started" target="_blank" rel="noopener noreferrer">Spotify for Artists — Get started ↗</a>.</p><div class="menuActions"><button id="loadSampleSongBtn" type="button">Load sample song</button><button id="closeHelpBtn" class="active">Got it</button></div></div></div>
 <div id="keybindsOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="keybindsTitle"><div class="menuPanel keybindMenuPanel"><h2 id="keybindsTitle">Keyboard Controls</h2><p class="keybindHint">Choose Change, then press a key. Shortcuts are saved on this computer.</p><div id="keybindRows"></div><div class="menuActions"><button id="resetKeybindsBtn" type="button">Reset defaults</button><button id="closeKeybindsBtn" class="active" type="button">Done</button></div></div></div>
 <div id="patternLibraryOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="patternLibraryTitle"><div class="menuPanel"><h2 id="patternLibraryTitle">Pattern Library</h2><p>Choose a starter pattern. Existing notes are kept.</p><div class="labSection"><strong>Drums</strong><div class="menuChoices"><button data-lab-pattern="fourfloor" type="button">Four-on-the-floor</button><button data-lab-pattern="breakbeat" type="button">Breakbeat starter</button></div></div><div class="labSection"><strong>Melody</strong><div class="menuChoices"><button data-lab-pattern="bass" type="button">Bass pulse</button><button data-lab-pattern="arpeggio" type="button">Arpeggio starter</button></div></div><div class="labSection"><strong>Chords</strong><div class="menuChoices"><button data-lab-pattern="chords" type="button">Three-chord loop</button></div></div><div class="menuActions"><button id="closePatternLibraryBtn" class="active" type="button">Done</button></div></div></div>
 <aside id="noteEditorSidebar" aria-label="Note statistics" hidden><div class="noteSidebarHeader"><div><h2>Note Editor</h2><p id="noteSidebarInstrument">Current instrument</p></div><button id="closeNoteEditorBtn" type="button" aria-label="Close Note Editor">×</button></div><div class="noteSidebarControl"><label for="labVelocity">Selected note velocity <strong id="velocityValue">75%</strong></label><input id="labVelocity" type="range" min="10" max="100" value="75"></div><p class="noteSidebarHint">Grid editing is locked while this panel is open.</p><div id="noteStatsList" class="noteStatsList"></div></aside>
@@ -4165,6 +4199,51 @@ document.getElementById("cancelClearBtn").addEventListener("click", closeClearCo
 document.getElementById("confirmClearBtn").addEventListener("click", confirmClearSong);
 document.getElementById("clearConfirmOverlay").addEventListener("click", event => { if (event.target.id === "clearConfirmOverlay") closeClearConfirmation(); });
 document.getElementById("helpBtn").addEventListener("click", () => { document.getElementById("helpOverlay").classList.add("show"); document.getElementById("closeHelpBtn").focus(); });
+document.getElementById("loadSampleSongBtn").addEventListener("click", loadSampleSong);
+
+function loadSampleSong() {
+  const hasNotes = state.instruments.some(instrument =>
+    Object.values(instrument.notes || {}).some(rows => Array.isArray(rows) && rows.length) ||
+    Object.keys(instrument.chords || {}).length
+  );
+  if (hasNotes && !window.confirm("Load the sample song? This replaces the current project. Save your work first if you want to keep it.")) return;
+
+  const makeDemoInstrument = (name, category, type, notes, chords = {}) => ({
+    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+    name, category, type, volume: 0.8, notes, chords
+  });
+  const drumNotes = {};
+  for (let step = 0; step < 32; step += 4) {
+    drumNotes[step] = [0];
+    if (step % 8 === 4) drumNotes[step] = [0, 10];
+  }
+  const hatNotes = {};
+  for (let step = 0; step < 32; step += 2) hatNotes[step] = [0];
+  const melodyRows = [23,19,16,19,21,19,16,14,16,19,23,19,21,19,16,19,23,19,16,19,21,19,16,14,16,19,21,23,21,19,16,19];
+  const melodyNotes = {};
+  melodyRows.forEach((row, step) => { if (step % 2 === 0 || step % 4 === 3) melodyNotes[step] = [row]; });
+  const chordNotes = {}, chordMap = {};
+  [[0,"C","major"],[8,"A","minor"],[16,"F","major"],[24,"G","major"]].forEach(([step,root,quality]) => {
+    chordNotes[step] = [23];
+    chordMap[step] = {root,quality};
+  });
+
+  loadProject({
+    bpm: 108, key: "C", scale: "major", autosave: true, timeSignature: "4/4",
+    category: "melody", currentInstrument: 2,
+    instruments: [
+      makeDemoInstrument("Demo Kick + Snare", "drums", "kick", drumNotes),
+      makeDemoInstrument("Demo Hi-Hat", "drums", "hihat", hatNotes),
+      makeDemoInstrument("Demo Melody", "melody", "piano", melodyNotes),
+      makeDemoInstrument("Demo Chords", "chords", "chord-piano", chordNotes, chordMap)
+    ]
+  });
+  autoSave();
+  buildWholeSongView();
+  document.getElementById("helpOverlay").classList.remove("show");
+}
+
+
 document.getElementById("closeHelpBtn").addEventListener("click", () => document.getElementById("helpOverlay").classList.remove("show"));
 document.getElementById("helpOverlay").addEventListener("click", event => { if (event.target.id === "helpOverlay") event.currentTarget.classList.remove("show"); });
 // Customizable keyboard shortcuts (stored locally, separate from project files).
