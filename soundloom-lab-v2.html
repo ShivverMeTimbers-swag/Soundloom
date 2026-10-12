@@ -797,6 +797,183 @@ body.dark-mode #scrollViewport::-webkit-scrollbar-thumb {
   background: #52525a;
 }
 
+/* DARK MODE POLISH: midnight studio with violet glass and instrument accents.
+   Color/surface overrides only; workspace geometry and note placement are untouched. */
+body.dark-mode {
+  background:#15131c;
+  color:#f3efff;
+}
+body.dark-mode #topbar {
+  background:linear-gradient(110deg,#211a30 0%,#1b1b29 58%,#17232c 100%);
+  border-bottom-color:#393248;
+}
+body.dark-mode #categoryBar {
+  background:#1b1925;
+  border-bottom-color:#393248;
+}
+body.dark-mode #logo span { color:#b5a9cf; }
+body.dark-mode .small-control,
+body.dark-mode #instrumentName { color:#b7aec9; }
+body.dark-mode #topbar .primaryAction {
+  background:#a78bd4;
+  border-color:#a78bd4;
+  color:#20172e;
+  box-shadow:0 2px 0 rgba(0,0,0,.2);
+}
+body.dark-mode #topbar .primaryAction:hover {
+  background:#b9a3e5;
+  border-color:#b9a3e5;
+}
+body.dark-mode button {
+  background:#292535;
+  color:#f3efff;
+  border-color:#494158;
+}
+body.dark-mode button:hover {
+  background:#353047;
+  border-color:#625577;
+}
+body.dark-mode button.active {
+  background:#a78bd4;
+  color:#20172e;
+  border-color:#a78bd4;
+}
+body.dark-mode .bpmControl {
+  background:#292338;
+  border-color:#49405d;
+  color:#ded3f7;
+}
+body.dark-mode .toolbarMenu > summary {
+  background:#292535;
+  color:#eee7ff;
+  border-color:#494158;
+}
+body.dark-mode .toolbarMenu > summary:hover,
+body.dark-mode .toolbarMenu[open] > summary {
+  background:#393047;
+  border-color:#76618f;
+}
+body.dark-mode .toolbarDropdown {
+  background:#211e2b;
+  border-color:#494158;
+  box-shadow:0 16px 38px rgba(0,0,0,.42);
+}
+body.dark-mode .toolbarDropdown button {
+  background:transparent;
+  color:#eee7ff;
+}
+body.dark-mode .toolbarDropdown button:hover,
+body.dark-mode #labToolsMenu .nestedToolbarMenu > summary:hover,
+body.dark-mode #labToolsMenu .nestedToolbarMenu[open] > summary {
+  background:#383047;
+  border-color:#50435f;
+}
+body.dark-mode #labToolsMenu .nestedToolbarMenu > summary {
+  background:transparent;
+  color:#eee7ff;
+}
+body.dark-mode .dropdownDivider { background:#40374d; }
+body.dark-mode .menuField,
+body.dark-mode #volumeControl { color:#c8bedb; }
+body.dark-mode .menuField input,
+body.dark-mode .loopDropdown .menuField input,
+body.dark-mode .loopDropdown .menuField select,
+body.dark-mode #labGridSpacing,
+body.dark-mode .small-control input,
+body.dark-mode .small-control select,
+body.dark-mode select {
+  background:#211e2b;
+  color:#f3efff;
+  border-color:#494158;
+}
+body.dark-mode input:focus-visible,
+body.dark-mode select:focus-visible,
+body.dark-mode button:focus-visible,
+body.dark-mode .toolbarMenu > summary:focus-visible {
+  outline:2px solid #b9a3e5;
+  outline-offset:2px;
+}
+body.dark-mode .categoryButton[data-category="melody"] { color:#82caff; }
+body.dark-mode .categoryButton[data-category="drums"] { color:#c0adff; }
+body.dark-mode .categoryButton[data-category="chords"] { color:#ffc17c; }
+body.dark-mode .categoryButton[data-category="melody"]:hover { background:#1d3546; }
+body.dark-mode .categoryButton[data-category="drums"]:hover { background:#302746; }
+body.dark-mode .categoryButton[data-category="chords"]:hover { background:#3b2b21; }
+body.dark-mode .categoryButton[data-category="melody"].active { background:#4d9fdb; color:#101d29; }
+body.dark-mode .categoryButton[data-category="drums"].active { background:#8a78d8; color:#171126; }
+body.dark-mode .categoryButton[data-category="chords"].active { background:#e59b4c; color:#29190a; }
+body.dark-mode #chordMakerBar {
+  background:#29213b;
+  border-bottom-color:#49375e;
+  color:#e3d5ff;
+}
+body.dark-mode #chordMakerBar select {
+  background:#211b30;
+  border-color:#5c4775;
+  color:#eee5ff;
+}
+body.dark-mode #chordMakerHint { color:#b8a6d8; }
+body.dark-mode #instrumentStrip {
+  background:#1b1925;
+  border-color:#393248;
+}
+body.dark-mode #gridFrame { background:#191721; }
+body.dark-mode .row { border-bottom-color:#302b3b; }
+body.dark-mode .cell { border-right-color:#262331; }
+body.dark-mode .cell.beat { border-right-color:#40374f; }
+body.dark-mode .cell.bar { border-right-color:#76618f; }
+body.dark-mode #instrumentIndicator {
+  background:rgba(35,30,47,.96);
+  border-color:#51445f;
+  color:#d0c1eb;
+}
+body.dark-mode #wholeSong { background:#15131c; }
+body.dark-mode #wholeHeader {
+  background:rgba(31,27,42,.97);
+  border-color:#393248;
+}
+body.dark-mode .overviewGroup { border-color:#393248; }
+body.dark-mode .overviewLabel { color:#b7aec9; }
+body.dark-mode .overviewGridLine { background:#302b3b; }
+body.dark-mode #wholeTimeline { border-color:#494158; }
+body.dark-mode .panel {
+  background:linear-gradient(145deg,#24202f,#1e1b29);
+  border-color:#494158;
+  box-shadow:0 10px 30px rgba(0,0,0,.22);
+}
+body.dark-mode .settingRow { border-color:#383143; }
+body.dark-mode .settingDescription,
+body.dark-mode .dropdownHint { color:#b7aec9; }
+body.dark-mode .loopPointGroup {
+  background:#211e2b;
+  border-color:#40374d;
+}
+body.dark-mode .loopPointGroup > strong { color:#b7aec9; }
+body.dark-mode .menuPanel {
+  background:#211e2b;
+  color:#f3efff;
+  border-color:#494158;
+  box-shadow:0 20px 55px rgba(0,0,0,.45);
+}
+body.dark-mode .menuChoices button {
+  background:#292535;
+  color:#f3efff;
+  border-color:#494158;
+}
+body.dark-mode .menuChoices button:hover {
+  background:#393047;
+  border-color:#76618f;
+}
+body.dark-mode .keybindSection { border-color:#494158; }
+body.dark-mode .keybindRow { border-color:#383143; }
+body.dark-mode .keybindKey {
+  background:#292535;
+  color:#e5dafa;
+  border-color:#625577;
+}
+body.dark-mode .scrollbar-thumb,
+body.dark-mode #scrollViewport::-webkit-scrollbar-thumb { background:#625577; }
+
 /* ---------- MOBILE ---------- */
 
 @media (max-width: 700px) {
