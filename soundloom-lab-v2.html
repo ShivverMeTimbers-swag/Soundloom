@@ -190,7 +190,9 @@ body.dark-mode .small-control select { background:#202020; color:#eee; border-co
 
 #workspace {
   position: relative;
-  height: calc(100% - 157px);
+  height: calc(100% - 103px);
+}
+body.chord-category #workspace { height: calc(100% - 157px);
   display: flex;
   overflow: hidden;
 }
@@ -1594,7 +1596,9 @@ function playChordAtCell(instrument, step, row) {
   if (!instrument || !String(instrument.type).startsWith("chord-")) { playInstrumentNote(instrument, row); return; }
   const chord = instrument.chords && instrument.chords[step] ? instrument.chords[step] : { root: document.getElementById("chordRootSelect")?.value || "C", quality: document.getElementById("chordQualitySelect")?.value || "major" };
   const semitones = { C:0, "C#":1, D:2, "D#":3, E:4, F:5, "F#":6, G:7, "G#":8, A:9, "A#":10, B:11 };
-  const rootRow = Math.max(0, Math.min(TOTAL_ROWS - 1, 23 - (semitones[chord.root] || 0)));
+  const baseMidi = 83 - row;
+  const rootMidi = baseMidi - (((baseMidi - (60 + (semitones[chord.root] || 0))) % 12 + 12) % 12);
+  const rootRow = Math.max(0, Math.min(TOTAL_ROWS - 1, 83 - rootMidi));
   instrument._playingChord = chord;
   playInstrumentNote(instrument, rootRow);
   delete instrument._playingChord;
@@ -2476,6 +2480,7 @@ function setCategory(category) {
 
   const chordBar = document.getElementById("chordMakerBar");
   if (chordBar) chordBar.hidden = category !== "chords";
+  document.body.classList.toggle("chord-category", category === "chords");
 
   document
     .querySelectorAll(".categoryButton")
