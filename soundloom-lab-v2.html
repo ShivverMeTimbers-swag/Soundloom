@@ -178,12 +178,19 @@ body.dark-mode .small-control select { background:#202020; color:#eee; border-co
   background: #f0f0f0;
   font-weight: 600;
 }
+#chordMakerBar { height:54px; display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; padding:6px 12px; background:#f5f1ff; border-bottom:1px solid #e5ddfa; color:#42376b; }
+#chordMakerBar[hidden] { display:none !important; }
+#chordMakerBar label { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; }
+#chordMakerBar select { border:1px solid #d6c9f3; border-radius:7px; padding:6px 8px; background:#fff; color:#3b315a; }
+#chordMakerBar strong { font-size:13px; }
+#chordMakerHint { font-size:11px; color:#75699a; }
+@media (max-width:700px) { #chordMakerBar { height:auto; min-height:54px; gap:7px; justify-content:flex-start; } #chordMakerHint { display:none; } }
 
 /* ---------- WORKSPACE ---------- */
 
 #workspace {
   position: relative;
-  height: calc(100% - 103px);
+  height: calc(100% - 157px);
   display: flex;
   overflow: hidden;
 }
@@ -507,6 +514,33 @@ body.dark-mode .small-control select { background:#202020; color:#eee; border-co
   border-radius: 50%;
   background: #222;
 }
+
+/* ---------- LIGHT MODE: warm paper, lavender controls, soft ink ---------- */
+body:not(.dark-mode) { background:#fbf8f2; color:#302b3b; }
+body:not(.dark-mode) #topbar { background:linear-gradient(110deg,#f7f0ff 0%,#fffaf1 65%,#eef8f7 100%); border-bottom-color:#e5dff0; }
+body:not(.dark-mode) #categoryBar { background:#fffdf9; border-bottom-color:#e9e1d6; }
+body:not(.dark-mode) .categoryButton { color:#766d83; }
+body:not(.dark-mode) .categoryButton:hover { background:#f3eefb; }
+body:not(.dark-mode) .categoryButton.active { background:#e9e0fb; color:#45366f; }
+body:not(.dark-mode) button { background:#fffdf9; border-color:#ded5e9; color:#383044; }
+body:not(.dark-mode) button:hover { background:#f3eefb; border-color:#c8b9e5; }
+body:not(.dark-mode) button.active { background:#5b4b87; border-color:#5b4b87; color:#fff; }
+body:not(.dark-mode) #instrumentStrip { background:#f4efe8; border-right-color:#e5ddd3; }
+body:not(.dark-mode) #gridFrame { background:#fffdf8; }
+body:not(.dark-mode) .row { border-bottom-color:#f0eae2; }
+body:not(.dark-mode) .cell { border-right-color:#f3eee7; }
+body:not(.dark-mode) .cell.beat { border-right-color:#ded5e8; }
+body:not(.dark-mode) .cell.bar { border-right-color:#b9a9d8; }
+body:not(.dark-mode) #instrumentIndicator { background:rgba(255,252,245,.95); border-color:#e5dcca; color:#766d83; }
+body:not(.dark-mode) #wholeSong { background:#fbf8f2; }
+body:not(.dark-mode) #wholeHeader { background:rgba(255,252,246,.96); border-color:#e5ddd3; }
+body:not(.dark-mode) .overviewGroup { border-color:#e5ddd3; }
+body:not(.dark-mode) .overviewLabel { color:#766d83; }
+body:not(.dark-mode) .overviewGridLine { background:#eee7df; }
+body:not(.dark-mode) #wholeTimeline { border-color:#dcd2e7; }
+body:not(.dark-mode) .panel { background:#fffdf9; border-color:#e2d8e9; }
+body:not(.dark-mode) .settingRow { border-color:#eee5dc; }
+body:not(.dark-mode) .settingDescription { color:#81768c; }
 
 /* ---------- DARK MODE ---------- */
 
@@ -935,6 +969,12 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
   <button class="categoryButton active" data-category="drums">Drums</button>
   <button class="categoryButton" data-category="melody">Melody</button>
   <button class="categoryButton" data-category="chords">Chords</button>
+</div>
+<div id="chordMakerBar" hidden aria-label="Chord Maker">
+  <strong>Chord Maker</strong>
+  <label>Root <select id="chordRootSelect"><option>C</option><option>C#</option><option>D</option><option>D#</option><option>E</option><option>F</option><option>F#</option><option>G</option><option>G#</option><option>A</option><option>A#</option><option>B</option></select></label>
+  <label>Quality <select id="chordQualitySelect"><option value="major">Major</option><option value="minor">Minor</option><option value="7">7th</option><option value="maj7">Major 7th</option><option value="min7">Minor 7th</option><option value="dim">Diminished</option><option value="aug">Augmented</option><option value="sus2">Sus2</option><option value="sus4">Sus4</option></select></label>
+  <span id="chordMakerHint">Choose a chord, then click the grid to place it.</span>
 </div>
 
 <!-- MAIN EDITOR -->
@@ -1550,6 +1590,16 @@ function playDrum(type, volume = 0.8) {
 }
 
 
+function playChordAtCell(instrument, step, row) {
+  if (!instrument || !String(instrument.type).startsWith("chord-")) { playInstrumentNote(instrument, row); return; }
+  const chord = instrument.chords && instrument.chords[step] ? instrument.chords[step] : { root: document.getElementById("chordRootSelect")?.value || "C", quality: document.getElementById("chordQualitySelect")?.value || "major" };
+  const semitones = { C:0, "C#":1, D:2, "D#":3, E:4, F:5, "F#":6, G:7, "G#":8, A:9, "A#":10, B:11 };
+  const rootRow = Math.max(0, Math.min(TOTAL_ROWS - 1, 23 - (semitones[chord.root] || 0)));
+  instrument._playingChord = chord;
+  playInstrumentNote(instrument, rootRow);
+  delete instrument._playingChord;
+}
+
 function playInstrumentNote(instrument, row) {
 
   if (Number.isFinite(instrument.volume) && instrument.volume <= 0) return;
@@ -1569,7 +1619,9 @@ function playInstrumentNote(instrument, row) {
 
   if (instrument.type.startsWith("chord-")) {
 
-    const intervals = [0, 4, 7];
+    const chord = instrument._playingChord || { quality: document.getElementById("chordQualitySelect")?.value || "major" };
+    const intervalsByQuality = { major:[0,4,7], minor:[0,3,7], "7":[0,4,7,10], maj7:[0,4,7,11], min7:[0,3,7,10], dim:[0,3,6], aug:[0,4,8], sus2:[0,2,7], sus4:[0,5,7] };
+    const intervals = intervalsByQuality[chord.quality] || intervalsByQuality.major;
 
     intervals.forEach(interval => {
 
@@ -1612,7 +1664,8 @@ function createInstrument(definition) {
     type: definition.type,
     volume: 0.8,
 
-    notes: {}
+    notes: {},
+    chords: {}
   };
 }
 
@@ -2267,16 +2320,14 @@ document.getElementById("canvas")
 
         editMode = "erase";
 
-        playInstrumentNote(
-          instrument,
-          row
-        );
+        playChordAtCell(instrument, step, row);
 
         removeNote(
           instrument,
           step,
           row
         );
+        if (instrument.chords) delete instrument.chords[step];
 
       } else {
 
@@ -2287,11 +2338,11 @@ document.getElementById("canvas")
           step,
           row
         );
-
-        playInstrumentNote(
-          instrument,
-          row
-        );
+        if (instrument.category === "chords") {
+          instrument.chords = instrument.chords || {};
+          instrument.chords[step] = { root: document.getElementById("chordRootSelect").value, quality: document.getElementById("chordQualitySelect").value };
+        }
+        playChordAtCell(instrument, step, row);
       }
 
       lastEditKey = key;
@@ -2350,10 +2401,7 @@ document.getElementById("canvas")
             row
           );
 
-          playInstrumentNote(
-            instrument,
-            row
-          );
+          playChordAtCell(instrument, step, row);
         }
 
       } else if (
@@ -2414,6 +2462,10 @@ document.getElementById("canvas")
    CATEGORY SWITCHING
    ========================================================= */
 
+document.getElementById("chordRootSelect").addEventListener("change", updateChordMakerHint);
+document.getElementById("chordQualitySelect").addEventListener("change", updateChordMakerHint);
+function updateChordMakerHint() { document.getElementById("chordMakerHint").textContent = document.getElementById("chordRootSelect").value + " " + document.getElementById("chordQualitySelect").selectedOptions[0].text + " selected — click the grid to place it."; }
+
 function setCategory(category) {
 
   state.category = category;
@@ -2421,6 +2473,9 @@ function setCategory(category) {
   ensureCategoryInstrument(
     category
   );
+
+  const chordBar = document.getElementById("chordMakerBar");
+  if (chordBar) chordBar.hidden = category !== "chords";
 
   document
     .querySelectorAll(".categoryButton")
@@ -2709,7 +2764,7 @@ function playStep(step) {
         const velocity = labGetVelocity(instrument, step, row);
         const originalVolume = instrument.volume;
         instrument.volume = originalVolume * velocity;
-        playInstrumentNote(instrument, row);
+        playChordAtCell(instrument, step, row);
         instrument.volume = originalVolume;
       });
 
@@ -3404,7 +3459,8 @@ function projectData() {
           category: instrument.category,
           type: instrument.type,
           volume: Number.isFinite(instrument.volume) ? instrument.volume : 0.8,
-          notes: instrument.notes
+          notes: instrument.notes,
+          chords: instrument.chords || {}
         })
       )
   };
@@ -3529,7 +3585,8 @@ function loadProject(data) {
           typeof instrument.notes ===
             "object"
             ? instrument.notes
-            : {}
+            : {},
+        chords: instrument.chords && typeof instrument.chords === "object" ? instrument.chords : {}
       })
     );
 
