@@ -3178,21 +3178,26 @@ function updatePlayback() {
   let guard = 0;
 
   while (state.playing && state.nextAudioTime < scheduleUntil && guard++ < 512) {
-    // Sample playback has its own unconditional boundary. It must never depend
-    // on the user's editable loop toggle, loop selection, or generic loop state.
-    if (sampleSongLooping && state.nextScheduleStep >= 32) {
-      state.nextScheduleStep = 0;
-      // Keep the playback clock continuous. The boundary is scheduled ahead of
-      // real time; resetting the clock here makes the playhead jump early.
-      window.soundloomSampleSongPlays = (window.soundloomSampleSongPlays || 0) + 1;
-      if (window.soundloomSampleSongPlays >= 10 && !window.soundloomSampleSongEasterEggShown) {
-        window.soundloomSampleSongEasterEggShown = true;
-        const messageDelay = Math.max(0, (state.nextAudioTime - ctx.currentTime) * 1000);
-        window.setTimeout(() => {
-          window.alert("Okay, I know it's good, go back to making music.");
-        }, messageDelay);
+    // The demo has a completely separate scheduling path. Normalize its step
+    // before playing each note so it can never fall through to end-of-song logic.
+    if (sampleSongLooping) {
+      if (state.nextScheduleStep >= 32) {
+        state.nextScheduleStep = 0;
+        window.soundloomSampleSongPlays = (window.soundloomSampleSongPlays || 0) + 1;
+        if (window.soundloomSampleSongPlays >= 10 && !window.soundloomSampleSongEasterEggShown) {
+          window.soundloomSampleSongEasterEggShown = true;
+          const messageDelay = Math.max(0, (state.nextAudioTime - ctx.currentTime) * 1000);
+          window.setTimeout(() => {
+            window.alert("Okay, I know it's good, go back to making music.");
+          }, messageDelay);
+        }
       }
-    } else if (!sampleSongLooping && state.nextScheduleStep >= (looping ? bounds.end : loopLength)) {
+      playStep(state.nextScheduleStep, state.nextAudioTime);
+      state.nextScheduleStep++;
+      state.nextAudioTime += duration;
+      continue;
+    }
+    if (state.nextScheduleStep >= (looping ? bounds.end : loopLength)) {
       if (looping) {
         const selectedCount = document.getElementById("loopCount").value;
         const count = selectedCount === "custom"
@@ -3228,9 +3233,10 @@ function updatePlayback() {
 
   const elapsedAudio = ctx.currentTime - state.playbackStartAudioTime;
   const currentStep = Math.max(0, Math.floor(elapsedAudio / duration));
-  // The sample's playhead follows the continuous audio clock and wraps at 32.
+  // Keep the sample playhead synchronized to the actual scheduler step,
+  // including the 32-step wrap, rather than an independently drifting clock.
   state.playbackStep = sampleSongLooping
-    ? (currentStep % 32)
+    ? (state.nextScheduleStep % 32)
     : Math.min(loopLength - 1, currentStep);
   updatePlayhead();
 
