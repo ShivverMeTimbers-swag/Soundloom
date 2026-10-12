@@ -1166,7 +1166,7 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
 
 <!-- TOP BAR: keep everyday actions visible; tuck advanced controls into small menus -->
 <div id="topbar">
-  <div id="logo">Soundloom <span style="font-size:10px;opacity:.65">LAB COPY</span></div>
+  <div id="logo">Soundloom <span style="font-size:10px;opacity:.65">LAB</span></div>
   <button id="backToStartBtn" type="button" title="Return to the Soundloom welcome screen">← Start screen</button>
   <button id="playBtn" class="primaryAction">▶ Play</button>
 
@@ -1488,7 +1488,7 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
   <div class="menuPanel"><h2 id="instrumentMenuTitle">Choose an instrument</h2><p id="instrumentMenuHint">Pick an instrument to add.</p><div id="instrumentMenuChoices" class="menuChoices"></div><div class="menuActions"><button id="cancelInstrumentMenu">Cancel</button></div></div>
 </div>
 <div id="clearConfirmOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="clearConfirmTitle">
-  <div class="menuPanel"><h2 id="clearConfirmTitle">Clear the whole song?</h2><p>This removes every note from every instrument. Your instruments will stay.</p><div class="menuActions"><button id="cancelClearBtn" class="active">No, keep it</button><button id="confirmClearBtn">Yes, clear song</button></div></div>
+  <div class="menuPanel"><h2 id="clearConfirmTitle">Reset the whole song?</h2><p>This removes all notes and extra instruments, then restores only Kick, Piano, and Piano Chords with no notes.</p><div class="menuActions"><button id="cancelClearBtn" class="active">No, keep it</button><button id="confirmClearBtn">Yes, reset song</button></div></div>
 </div>
 <div id="helpOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="menuPanel"><h2 id="helpTitle">Soundloom Help</h2>
 <p><strong>Make notes:</strong> Click empty grid cells to add notes and existing notes to remove them.</p><p><strong>Instruments:</strong> Use + Instrument to add one and Instruments to switch sounds. Open Edit for undo, redo, copy, paste, and duplicate.</p><p><strong>Pattern Library:</strong> Choose a drum beat, bass pulse, arpeggio, or chord starter. It adds notes to the matching category and keeps existing notes.</p><p><strong>Note Editor:</strong> Opens a right sidebar listing each note's pitch, velocity, measure, and step. Select a note to change its velocity. The grid is locked against adding/removing notes until Note Editor is closed.</p><p><strong>Grid spacing:</strong> Choose Fine, Medium, Default, or Wide. This changes visual spacing, not note timing.</p><p><strong>Keyboard Controls:</strong> Open More → Keyboard Controls to customize shortcuts for menus and actions.</p><p><strong>Play and save:</strong> Use Play, BPM, Save, and Load. Settings contains time signature, key, scale, dark mode, auto-save, and Whole Song View.</p><p><strong>Try a sample:</strong> Load a short demo song to explore a finished beat, melody, and chord progression. Loading replaces the current project only after confirmation.</p><p><strong>Release on Spotify:</strong> Soundloom creates music; to publish it on Spotify, you generally use a music distributor. Start with <a href="https://artists.spotify.com/get-started" target="_blank" rel="noopener noreferrer">Spotify for Artists — Get started ↗</a>.</p><div class="menuActions"><button id="loadSampleSongBtn" type="button">Load sample song</button><button id="closeHelpBtn" class="active">Got it</button></div></div></div>
@@ -4258,10 +4258,37 @@ function openClearConfirmation() {
 }
 function closeClearConfirmation() { document.getElementById("clearConfirmOverlay").classList.remove("show"); }
 function confirmClearSong() {
-  if (state.instruments.some(instrument => Object.keys(instrument.notes || {}).length)) pushUndoSnapshot();
-  state.instruments.forEach(instrument => { instrument.notes = {}; });
+  // Preserve the current project in Undo before clearing its notes/instrument setup.
+  if (state.instruments.some(instrument =>
+    Object.values(instrument.notes || {}).some(rows => Array.isArray(rows) && rows.length) ||
+    Object.keys(instrument.chords || {}).length
+  ) || state.instruments.length !== 3 ||
+      state.instruments.some((instrument, index) => {
+        const defaults = [
+          { name: "Kick", category: "drums", type: "kick" },
+          { name: "Piano", category: "melody", type: "piano" },
+          { name: "Piano Chords", category: "chords", type: "chord-piano" }
+        ];
+        const expected = defaults[index];
+        return !expected || instrument.name !== expected.name ||
+          instrument.category !== expected.category || instrument.type !== expected.type;
+      })) {
+    pushUndoSnapshot();
+  }
+
+  // Stop the sample-song loop and discard every demo instrument/note/chord.
+  if (state.playing) stopPlayback();
+  window.soundloomSampleSongActive = false;
+  window.soundloomSampleSongPlays = 0;
+  window.soundloomSampleSongEasterEggShown = false;
+
+  // This creates exactly the three blank defaults: Kick, Piano, Piano Chords.
+  initializeInstruments();
   state.playbackStep = 0;
-  renderCurrentInstrument(); buildWholeSongView(); autoSave(); closeClearConfirmation();
+  renderCurrentInstrument();
+  buildWholeSongView();
+  autoSave();
+  closeClearConfirmation();
 }
 document.getElementById("chooseInstrumentBtn").addEventListener("click", () => openInstrumentMenu("select"));
 document.getElementById("cancelInstrumentMenu").addEventListener("click", closeInstrumentMenu);
