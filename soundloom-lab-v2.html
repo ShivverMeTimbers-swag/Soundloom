@@ -3082,6 +3082,15 @@ function playStep(step) {
 }
 
 
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && state.playing) {
+    // Browsers may suspend the audio context when a page loses focus.
+    if (state.audioContext && state.audioContext.state === "suspended") {
+      state.audioContext.resume().catch(() => {});
+    }
+  }
+});
+
 function startPlayback() {
   window.soundloomLoopPass = 1;
   window.soundloomLoopCompleted = false;
@@ -3118,11 +3127,8 @@ function stopPlayback(completedNaturally = false) {
   state.playing = false;
 
   if (state.animationFrame) {
-
-    cancelAnimationFrame(
-      state.animationFrame
-    );
-
+    cancelAnimationFrame(state.animationFrame);
+    clearTimeout(state.animationFrame);
     state.animationFrame = null;
   }
 
@@ -3222,10 +3228,11 @@ function updatePlayback() {
 
   updatePlayhead();
 
-  state.animationFrame =
-    requestAnimationFrame(
-      updatePlayback
-    );
+  // requestAnimationFrame is heavily throttled in background tabs.
+  // Use a short timer while hidden so playback timing can keep advancing.
+  state.animationFrame = document.hidden
+    ? setTimeout(updatePlayback, 25)
+    : requestAnimationFrame(updatePlayback);
 }
 
 
