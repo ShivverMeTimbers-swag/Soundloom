@@ -87,7 +87,9 @@ body.dark-mode #backToStartBtn:hover { background:#39314e; }
 .toolbarDropdown button { width:100%; text-align:left; background:#fff; border-color:transparent; padding:9px 10px; }
 .toolbarDropdown button:hover { background:#f4f4f4; border-color:#eee; }
 /* Nested Lab Tools submenu: keep its trigger and panel visually inside the parent menu. */
-#labToolsMenu > .toolbarDropdown { min-width:205px; }
+#labToolsMenu > .toolbarDropdown { min-width:220px; }
+#labToolsMenu .labGridSpacingField { width:100%; padding:4px 2px; }
+#labGridSpacing { width:112px; min-width:0; padding:5px 6px; border:1px solid #ddd; border-radius:6px; background:#fff; color:#222; }
 #labToolsMenu .nestedToolbarMenu { width:100%; }
 #labToolsMenu .nestedToolbarMenu > summary { display:block; width:100%; box-sizing:border-box; text-align:left; border-color:transparent; padding:9px 10px; background:#fff; }
 #labToolsMenu .nestedToolbarMenu > summary:hover,
@@ -877,20 +879,15 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
     <div class="toolbarDropdown">
       <button id="patternLibraryBtn" type="button">Pattern Library</button>
       <button id="noteEditorBtn" type="button" aria-pressed="false">Note Editor</button>
-      <details class="toolbarMenu nestedToolbarMenu" id="gridSpacingMenu">
-        <summary>Grid spacing</summary>
-        <div class="toolbarDropdown">
-          <label class="menuField" for="labGridSpacing">Step width
-            <select id="labGridSpacing" aria-label="Grid spacing">
-              <option value="20">Fine / compact</option>
-              <option value="30">Medium</option>
-              <option value="40" selected>Default</option>
-              <option value="60">Wide</option>
-            </select>
-          </label>
-          <p class="dropdownHint">Visual spacing only; note timing stays the same.</p>
-        </div>
-      </details>
+      <label class="menuField labGridSpacingField" for="labGridSpacing">Grid spacing
+        <select id="labGridSpacing" aria-label="Grid spacing">
+          <option value="20">Fine</option>
+          <option value="30">Medium</option>
+          <option value="40" selected>Default</option>
+          <option value="60">Wide</option>
+        </select>
+      </label>
+      <p class="dropdownHint">Changes spacing, not note timing.</p>
     </div>
   </details>
 </div>
@@ -3850,7 +3847,7 @@ document.addEventListener("keydown", event => {
 
   const clickIds={settings:"settingsBtn",help:"helpBtn",save:"saveBtn",load:"loadBtn",play:"playBtn",addInstrument:"addInstrumentBtn",removeInstrument:"removeInstrumentBtn",undo:"undoBtn",redo:"redoBtn",copy:"copyBtn",paste:"pasteBtn",duplicate:"duplicateBtn",keybinds:"keybindsBtn",patternLibrary:"patternLibraryBtn",noteEditor:"noteEditorBtn",backToStart:"backToStartBtn",wholeSongView:"openWholeFromSettings"};
   if(clickIds[binding]){document.getElementById(clickIds[binding]).click();event.preventDefault();return;}
-  const menuIds={editMenu:"editMenu",loopMenu:"loopMenu",projectMenu:"projectMenu",soundMenu:"soundMenu",moreMenu:"moreMenu",labTools:"labToolsMenu",gridSpacing:"gridSpacingMenu"};
+  const menuIds={editMenu:"editMenu",loopMenu:"loopMenu",projectMenu:"projectMenu",soundMenu:"soundMenu",moreMenu:"moreMenu",labTools:"labToolsMenu"};
   if(menuIds[binding]){const m=document.getElementById(menuIds[binding]);m.open=!m.open;event.preventDefault();return;}
   if(["drums","melody","chords"].includes(binding)){setCategory(binding);event.preventDefault();return;}
   const patternKeys={patternFourfloor:"fourfloor",patternBreakbeat:"breakbeat",patternBass:"bass",patternArpeggio:"arpeggio",patternChords:"chords"};
