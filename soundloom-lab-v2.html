@@ -99,7 +99,11 @@ body.dark-mode #labToolsMenu .nestedToolbarMenu > summary { background:#282828; 
 body.dark-mode #labToolsMenu .nestedToolbarMenu > summary:hover,
 body.dark-mode #labToolsMenu .nestedToolbarMenu[open] > summary { background:#393939; border-color:#505050; }
 .dropdownDivider { height:1px; background:#eee; margin:3px 2px; }
-.loopDropdown { min-width:205px; gap:10px; }
+.loopDropdown { min-width:235px; gap:10px; max-height:75vh; overflow-y:auto; }
+.loopPointGroup { display:flex; flex-direction:column; gap:7px; padding:7px 8px; border:1px solid #eee; border-radius:9px; }
+.loopPointGroup > strong { font-size:12px; color:#777; }
+.loopDropdown .menuField input, .loopDropdown .menuField select { width:94px; padding:5px; border:1px solid #ddd; border-radius:6px; background:#fff; color:#222; }
+.loopDropdown .menuField select { width:112px; }
 .menuCheck { display:flex; align-items:center; gap:8px; font-size:14px; }
 .menuField { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#555; font-size:13px; }
 .menuField input { width:64px; padding:5px; border:1px solid #ddd; border-radius:6px; }
@@ -839,9 +843,25 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
     <summary>Loop</summary>
     <div class="toolbarDropdown loopDropdown">
       <label class="menuCheck"><input id="loopEnabled" type="checkbox"> Repeat section</label>
-      <label class="menuField">From measure <input id="loopStart" type="number" min="1" value="1"></label>
-      <label class="menuField">To measure <input id="loopEnd" type="number" min="1" value="4"></label>
-      <p class="dropdownHint">Repeats this range during playback.</p>
+      <div class="loopPointGroup">
+        <strong>Start at</strong>
+        <label class="menuField">Measure <input id="loopStart" type="number" min="1" value="1"></label>
+        <label class="menuField">Note <input id="loopStartNote" type="number" min="1" value="1"></label>
+      </div>
+      <div class="loopPointGroup">
+        <strong>End at (inclusive)</strong>
+        <label class="menuField">Measure <input id="loopEnd" type="number" min="1" value="1"></label>
+        <label class="menuField">Note <input id="loopEndNote" type="number" min="1" value="16"></label>
+      </div>
+      <label class="menuField">Play section
+        <select id="loopCount" aria-label="Loop repetitions">
+          <option value="1">1 time</option><option value="2">2 times</option>
+          <option value="3">3 times</option><option value="4">4 times</option>
+          <option value="5">5 times</option><option value="10">10 times</option>
+          <option value="0" selected>Forever</option>
+        </select>
+      </label>
+      <p class="dropdownHint">Note numbers are steps within each measure. The ending note is included.</p>
     </div>
   </details>
 
@@ -2112,24 +2132,43 @@ function duplicatePattern() {
 }
 function loopBounds() {
   const measureSteps = Math.max(1, getMeasureSteps());
-  const startMeasure = Math.max(1, Number(document.getElementById('loopStart').value) || 1);
-  const endMeasure = Math.max(startMeasure, Number(document.getElementById('loopEnd').value) || startMeasure);
-  return { start: (startMeasure - 1) * measureSteps, end: endMeasure * measureSteps };
+  const read = id => Math.max(1, Number(document.getElementById(id).value) || 1);
+  const startMeasure = read('loopStart');
+  const endMeasure = read('loopEnd');
+  const startNote = Math.min(measureSteps, read('loopStartNote'));
+  const endNote = Math.min(measureSteps, read('loopEndNote'));
+  let start = (startMeasure - 1) * measureSteps + startNote - 1;
+  let end = (endMeasure - 1) * measureSteps + endNote;
+  if (end <= start) end = start + 1;
+  return { start, end };
 }
 function syncLoopInputs() {
-  const start = document.getElementById('loopStart');
-  const end = document.getElementById('loopEnd');
-  start.max = end.value;
-  end.min = start.value;
-  if (Number(end.value) < Number(start.value)) end.value = start.value;
+  const measureSteps = Math.max(1, getMeasureSteps());
+  for (const id of ['loopStartNote','loopEndNote']) {
+    const el = document.getElementById(id);
+    el.max = measureSteps;
+    if (Number(el.value) > measureSteps) el.value = measureSteps;
+    if (Number(el.value) < 1) el.value = 1;
+  }
+  const startMeasure = document.getElementById('loopStart');
+  const endMeasure = document.getElementById('loopEnd');
+  const startNote = document.getElementById('loopStartNote');
+  const endNote = document.getElementById('loopEndNote');
+  [startMeasure,endMeasure].forEach(el => { el.min = 1; el.value = Math.max(1, Number(el.value) || 1); });
+  const startAbs = (Number(startMeasure.value)-1)*measureSteps + Number(startNote.value)-1;
+  const endAbs = (Number(endMeasure.value)-1)*measureSteps + Number(endNote.value)-1;
+  if (endAbs < startAbs) {
+    endMeasure.value = startMeasure.value;
+    endNote.value = startNote.value;
+  }
 }
 document.getElementById('undoBtn').addEventListener('click', undoEdit);
 document.getElementById('redoBtn').addEventListener('click', redoEdit);
 document.getElementById('copyBtn').addEventListener('click', copyPattern);
 document.getElementById('pasteBtn').addEventListener('click', () => pastePattern(true));
 document.getElementById('duplicateBtn').addEventListener('click', duplicatePattern);
-document.getElementById('loopStart').addEventListener('change', syncLoopInputs);
-document.getElementById('loopEnd').addEventListener('change', syncLoopInputs);
+['loopStart','loopStartNote','loopEnd','loopEndNote'].forEach(id => document.getElementById(id).addEventListener('change', syncLoopInputs));
+syncLoopInputs();
 document.getElementById('pasteBtn').disabled = true;
 
 /* =========================================================
@@ -2639,6 +2678,7 @@ function startPlayback() {
 
   state.playing = true;
   const bounds = document.getElementById("loopEnabled").checked ? loopBounds() : { start: 0, end: null };
+  window.soundloomLoopPass = 1;
   state.playbackStep = bounds.start;
   state.playbackStartTime = performance.now() - bounds.start * stepDuration() * 1000;
 
@@ -2716,9 +2756,24 @@ function updatePlayback() {
   const bounds = loopEnabled ? loopBounds() : { start: 0, end: loopLength };
   const effectiveEnd = loopEnabled ? bounds.end : loopLength;
   if (newStep >= effectiveEnd) {
-    state.playbackStep = bounds.start;
-    state.playbackStartTime = performance.now() - bounds.start * durationMs;
-    playStep(state.playbackStep);
+    if (loopEnabled) {
+      const count = Number(document.getElementById("loopCount").value) || 0;
+      const pass = window.soundloomLoopPass || 1;
+      if (count === 0 || pass < count) {
+        window.soundloomLoopPass = pass + 1;
+        state.playbackStep = bounds.start;
+        state.playbackStartTime = performance.now() - bounds.start * durationMs;
+        playStep(state.playbackStep);
+      } else {
+        document.getElementById("loopEnabled").checked = false;
+        state.playbackStep = bounds.end;
+        state.playbackStartTime = performance.now() - bounds.end * durationMs;
+        if (bounds.end >= loopLength) { stopPlayback(); return; }
+      }
+    } else {
+      stopPlayback();
+      return;
+    }
   } else if (newStep < bounds.start) {
     state.playbackStep = bounds.start;
     state.playbackStartTime = performance.now() - bounds.start * durationMs;
