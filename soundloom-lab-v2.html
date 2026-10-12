@@ -1684,9 +1684,10 @@ function midiToFrequency(midi) {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
-function playTone(row, instrument, duration = .18, velocity = .55) {
+function playTone(row, instrument, duration = .18, velocity = .55, when = null) {
 
   const ctx = getAudioContext();
+  const startAt = Math.max(ctx.currentTime, Number.isFinite(when) ? when : ctx.currentTime);
 
   const baseMidi = 83 - row;
   const freq = midiToFrequency(baseMidi);
@@ -1734,36 +1735,36 @@ function playTone(row, instrument, duration = .18, velocity = .55) {
   }
 
   osc.type = wave;
-  osc.frequency.setValueAtTime(freq, ctx.currentTime);
+  osc.frequency.setValueAtTime(freq, startAt);
 
   if (instrument.type === "bass") {
-    osc.frequency.setValueAtTime(freq / 2, ctx.currentTime);
+    osc.frequency.setValueAtTime(freq / 2, startAt);
   }
 
-  gain.gain.setValueAtTime(.0001, ctx.currentTime);
+  gain.gain.setValueAtTime(.0001, startAt);
 
   gain.gain.exponentialRampToValueAtTime(
     Math.max(.001, velocity * (Number.isFinite(instrument.volume) ? instrument.volume : 0.8)),
-    ctx.currentTime + .008
+    startAt + .008
   );
 
   gain.gain.exponentialRampToValueAtTime(
     .0001,
-    ctx.currentTime + duration
+    startAt + duration
   );
 
   osc.connect(gain);
   gain.connect(ctx.destination);
 
-  osc.start();
-  osc.stop(ctx.currentTime + duration + .03);
+  osc.start(startAt);
+  osc.stop(startAt + duration + .03);
 }
 
 
-function playDrum(type, volume = 0.8) {
+function playDrum(type, volume = 0.8, when = null) {
 
   const ctx = getAudioContext();
-  const now = ctx.currentTime;
+  const now = Math.max(ctx.currentTime, Number.isFinite(when) ? when : ctx.currentTime);
 
   const gain = ctx.createGain();
   gain.connect(ctx.destination);
@@ -1896,19 +1897,19 @@ function playDrum(type, volume = 0.8) {
 }
 
 
-function playChordAtCell(instrument, step, row) {
-  if (!instrument || !String(instrument.type).startsWith("chord-")) { playInstrumentNote(instrument, row); return; }
+function playChordAtCell(instrument, step, row, when = null) {
+  if (!instrument || !String(instrument.type).startsWith("chord-")) { playInstrumentNote(instrument, row, when); return; }
   const chord = instrument.chords && instrument.chords[step] ? instrument.chords[step] : { root: document.getElementById("chordRootSelect")?.value || "C", quality: document.getElementById("chordQualitySelect")?.value || "major" };
   const semitones = { C:0, "C#":1, D:2, "D#":3, E:4, F:5, "F#":6, G:7, "G#":8, A:9, "A#":10, B:11 };
   const baseMidi = 83 - row;
   const rootMidi = baseMidi - (((baseMidi - (60 + (semitones[chord.root] || 0))) % 12 + 12) % 12);
   const rootRow = Math.max(0, Math.min(TOTAL_ROWS - 1, 83 - rootMidi));
   instrument._playingChord = chord;
-  playInstrumentNote(instrument, rootRow);
+  playInstrumentNote(instrument, rootRow, when);
   delete instrument._playingChord;
 }
 
-function playInstrumentNote(instrument, row) {
+function playInstrumentNote(instrument, row, when = null) {
 
   if (Number.isFinite(instrument.volume) && instrument.volume <= 0) return;
 
@@ -1921,7 +1922,7 @@ function playInstrumentNote(instrument, row) {
     instrument.type === "tom"
   ) {
 
-    playDrum(instrument.type, instrument.volume ?? 0.8);
+    playDrum(instrument.type, instrument.volume ?? 0.8, when);
     return;
   }
 
@@ -1944,7 +1945,8 @@ function playInstrumentNote(instrument, row) {
           chordRow,
           instrument,
           .35,
-          .32
+          .32,
+          when
         );
       }
     });
@@ -1952,7 +1954,7 @@ function playInstrumentNote(instrument, row) {
     return;
   }
 
-  playTone(row, instrument);
+  playTone(row, instrument, .18, .55, when);
 }
 
 
@@ -3059,188 +3061,152 @@ document.getElementById("labVelocity").addEventListener("input", event => {
 });
 
 
-function playStep(step) {
-
-  state.instruments.forEach(
-    instrument => {
-
-      const rows =
-        instrument.notes[step];
-
-      if (!rows) return;
-
-      rows.forEach(row => {
-        const velocity = labGetVelocity(instrument, step, row);
-        const originalVolume = instrument.volume;
-        instrument.volume = originalVolume * velocity;
-        playChordAtCell(instrument, step, row);
-        instrument.volume = originalVolume;
-      });
-
-    }
-  );
+function playStep(step, when = null) {
+  state.instruments.forEach(instrument => {
+    const rows = instrument.notes[step];
+    if (!rows) return;
+    rows.forEach(row => {
+      const velocity = labGetVelocity(instrument, step, row);
+      const originalVolume = instrument.volume;
+      instrument.volume = originalVolume * velocity;
+      playChordAtCell(instrument, step, row, when);
+      instrument.volume = originalVolume;
+    });
+  });
 }
 
 
+// Playback uses Web Audio's clock and schedules notes ahead of time. This
+// avoids depending on requestAnimationFrame for every audible note.
 document.addEventListener("visibilitychange", () => {
-  if (!state.playing) return;
-  // Resume audio when returning to the tab; browsers commonly suspend it on focus changes.
-  if (state.audioContext && state.audioContext.state === "suspended") {
+  if (state.audioContext && state.audioContext.state === "suspended" && state.playing) {
     state.audioContext.resume().catch(() => {});
   }
-  // Re-sync immediately after a background-tab pause so playback does not wait
-  // for a throttled animation frame. Background playback is still browser-policy dependent.
-  if (!document.hidden) updatePlayback();
 });
 
+function playbackBounds() {
+  const songLength = getSongLength();
+  const beatSteps = Math.max(1, getBeatSteps());
+  const loopLength = Math.max(1, Math.ceil(songLength / beatSteps) * beatSteps);
+  const sampleSongLooping = !!window.soundloomSampleSongActive;
+  const looping = sampleSongLooping || (document.getElementById("loopEnabled").checked && !window.soundloomLoopCompleted);
+  let bounds = sampleSongLooping ? {start:0,end:loopLength} : (looping ? loopBounds() : {start:0,end:loopLength});
+  if (!sampleSongLooping) {
+    bounds.start = Math.max(0, Math.min(loopLength - 1, bounds.start));
+    bounds.end = Math.max(bounds.start + 1, Math.min(loopLength, bounds.end));
+  }
+  return {songLength, loopLength, sampleSongLooping, looping, bounds};
+}
+
 function startPlayback() {
+  if (state.playing) return;
   window.soundloomLoopPass = 1;
   window.soundloomLoopCompleted = false;
-
-  if (state.playing) return;
-
-  getAudioContext();
-
+  const ctx = getAudioContext();
+  if (ctx.state === "suspended") ctx.resume().catch(() => {});
   state.playing = true;
-  const bounds = document.getElementById("loopEnabled").checked ? loopBounds() : { start: 0, end: null };
-  window.soundloomLoopPass = 1;
-  state.playbackStep = bounds.start;
-  state.playbackStartTime = performance.now() - bounds.start * stepDuration() * 1000;
-
-  document.getElementById(
-    "playBtn"
-  ).textContent = "Stop";
-
-  playStep(state.playbackStep);
+  const info = playbackBounds();
+  const startStep = info.looping ? info.bounds.start : 0;
+  state.playbackStep = startStep;
+  state.nextScheduleStep = startStep;
+  state.nextAudioTime = ctx.currentTime + 0.08;
+  state.playbackStartAudioTime = state.nextAudioTime - startStep * stepDuration();
+  state.playbackStartTime = performance.now() - startStep * stepDuration() * 1000;
+  state.scheduledLoopEndAudioTime = null;
+  document.getElementById("playBtn").textContent = "Stop";
+  state.animationFrame = setTimeout(updatePlayback, 20);
   updatePlayback();
 }
 
-
 function stopPlayback(completedNaturally = false) {
-
-  if (completedNaturally && window.soundloomSampleSongActive) {
-    window.soundloomSampleSongPlays = (window.soundloomSampleSongPlays || 0) + 1;
-    if (window.soundloomSampleSongPlays >= 10) {
-      window.soundloomSampleSongActive = false;
-      window.alert("Okay, I know it's good, go back to making music.");
-    }
-  }
-
   state.playing = false;
-
   if (state.animationFrame) {
     cancelAnimationFrame(state.animationFrame);
     clearTimeout(state.animationFrame);
     state.animationFrame = null;
   }
-
   state.playbackStep = 0;
-
-  document.getElementById(
-    "playBtn"
-  ).textContent = "Play";
-
+  state.nextScheduleStep = 0;
+  state.scheduledLoopEndAudioTime = null;
+  if (completedNaturally && window.soundloomSampleSongActive) {
+    window.soundloomSampleSongActive = false;
+  }
+  document.getElementById("playBtn").textContent = "Play";
   updatePlayhead();
 }
-
 
 function togglePlayback() {
-
-  if (state.playing) {
-    stopPlayback();
-  } else {
-    startPlayback();
-  }
+  if (state.playing) stopPlayback();
+  else startPlayback();
 }
 
-
 function updatePlayback() {
-
   if (!state.playing) return;
-
-  const elapsed =
-    performance.now() -
-    state.playbackStartTime;
-
-  const durationMs =
-    stepDuration() * 1000;
-
-  const newStep =
-    Math.floor(
-      elapsed / durationMs
-    );
-
-  const songLength =
-    getSongLength();
-
-  const beatSteps =
-    getBeatSteps();
-
-  const loopLength =
-    Math.ceil(
-      songLength / beatSteps
-    ) *
-    beatSteps;
-
-  const sampleSongLooping = !!window.soundloomSampleSongActive;
-  const loopEnabled = sampleSongLooping || (document.getElementById("loopEnabled").checked && !window.soundloomLoopCompleted);
-  let bounds = sampleSongLooping ? { start: 0, end: loopLength } : (loopEnabled ? loopBounds() : { start: 0, end: loopLength });
-  // Keep loop points inside the current song's timeline; otherwise a loop can
-  // wait beyond the actual song end and appear not to repeat.
-  if (!sampleSongLooping) {
-    bounds.start = Math.max(0, Math.min(loopLength - 1, bounds.start));
-    bounds.end = Math.max(bounds.start + 1, Math.min(loopLength, bounds.end));
+  const ctx = getAudioContext();
+  if (ctx.state === "suspended") {
+    ctx.resume().catch(() => {});
+    state.animationFrame = setTimeout(updatePlayback, 30);
+    return;
   }
-  const effectiveEnd = loopEnabled ? bounds.end : loopLength;
-  if (newStep >= effectiveEnd) {
-    if (sampleSongLooping) {
-      window.soundloomSampleSongPlays = (window.soundloomSampleSongPlays || 0) + 1;
-      if (window.soundloomSampleSongPlays >= 10 && !window.soundloomSampleSongEasterEggShown) {
-        window.soundloomSampleSongEasterEggShown = true;
-        window.alert("Okay, I know it's good, go back to making music.");
-      }
-      window.soundloomLoopPass = (window.soundloomLoopPass || 1) + 1;
-      state.playbackStep = 0;
-      state.playbackStartTime = performance.now();
-      playStep(0);
-    } else if (loopEnabled) {
-      const selectedCount = document.getElementById("loopCount").value;
-      const count = selectedCount === "custom"
-        ? Math.max(1, Math.min(999, Number(document.getElementById("loopCustomCount").value) || 1))
-        : Number(selectedCount) || 0;
-      const pass = window.soundloomLoopPass || 1;
-      if (!window.soundloomLoopCompleted && (count === 0 || pass < count)) {
-        window.soundloomLoopPass = pass + 1;
-        state.playbackStep = bounds.start;
-        state.playbackStartTime = performance.now() - bounds.start * durationMs;
-        playStep(state.playbackStep);
+
+  const duration = stepDuration();
+  const info = playbackBounds();
+  const {loopLength, sampleSongLooping, looping, bounds} = info;
+  // Keep 1.25 seconds of notes queued in Web Audio so short background-tab
+  // timer throttling does not immediately silence playback.
+  const scheduleUntil = ctx.currentTime + 1.25;
+  let guard = 0;
+
+  while (state.playing && state.nextAudioTime < scheduleUntil && guard++ < 512) {
+    if (state.nextScheduleStep >= (looping ? bounds.end : loopLength)) {
+      if (sampleSongLooping) {
+        state.nextScheduleStep = 0;
+        state.playbackStartAudioTime = state.nextAudioTime;
+        window.soundloomSampleSongPlays = (window.soundloomSampleSongPlays || 0) + 1;
+        if (window.soundloomSampleSongPlays >= 10 && !window.soundloomSampleSongEasterEggShown) {
+          window.soundloomSampleSongEasterEggShown = true;
+          window.setTimeout(() => window.alert("Okay, I know it's good, go back to making music."), Math.max(0, (state.nextAudioTime - ctx.currentTime) * 1000));
+        }
+      } else if (looping) {
+        const selectedCount = document.getElementById("loopCount").value;
+        const count = selectedCount === "custom"
+          ? Math.max(1, Math.min(999, Number(document.getElementById("loopCustomCount").value) || 1))
+          : Number(selectedCount) || 0;
+        const pass = window.soundloomLoopPass || 1;
+        if (count === 0 || pass < count) {
+          window.soundloomLoopPass = pass + 1;
+          state.nextScheduleStep = bounds.start;
+          state.playbackStartAudioTime = state.nextAudioTime - bounds.start * duration;
+        } else {
+          window.soundloomLoopCompleted = true;
+          if (bounds.end >= loopLength) {
+            state.scheduledLoopEndAudioTime = state.nextAudioTime;
+            break;
+          }
+          state.nextScheduleStep = bounds.end;
+          state.playbackStartAudioTime = state.nextAudioTime - bounds.end * duration;
+        }
       } else {
-        window.soundloomLoopCompleted = true;
-        if (bounds.end >= loopLength) { stopPlayback(true); return; }
-        // Let the normal playback branch play the step immediately after the loop.
-        state.playbackStep = bounds.end - 1;
-        state.playbackStartTime = performance.now() - bounds.end * durationMs;
+        state.scheduledLoopEndAudioTime = state.nextAudioTime;
+        break;
       }
-    } else {
-      stopPlayback(true);
-      return;
     }
-  } else if (newStep < bounds.start) {
-    state.playbackStep = bounds.start;
-    state.playbackStartTime = performance.now() - bounds.start * durationMs;
-    playStep(state.playbackStep);
-  } else if (newStep !== state.playbackStep) {
-    state.playbackStep = newStep;
-    playStep(state.playbackStep);
+    playStep(state.nextScheduleStep, state.nextAudioTime);
+    state.nextScheduleStep++;
+    state.nextAudioTime += duration;
   }
 
+  const elapsedAudio = ctx.currentTime - state.playbackStartAudioTime;
+  const currentStep = Math.max(0, Math.floor(elapsedAudio / duration));
+  state.playbackStep = Math.min(loopLength - 1, currentStep);
   updatePlayhead();
 
-  // requestAnimationFrame is heavily throttled in background tabs.
-  // Use a short timer while hidden so playback timing can keep advancing.
-  state.animationFrame = document.hidden
-    ? setTimeout(updatePlayback, 25)
-    : requestAnimationFrame(updatePlayback);
+  if (state.scheduledLoopEndAudioTime !== null && ctx.currentTime >= state.scheduledLoopEndAudioTime) {
+    stopPlayback(true);
+    return;
+  }
+  // Use a timer instead of rAF; audio events are already queued on the Web Audio clock.
+  state.animationFrame = setTimeout(updatePlayback, document.hidden ? 100 : 25);
 }
 
 
