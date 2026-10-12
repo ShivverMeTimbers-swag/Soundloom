@@ -3197,35 +3197,40 @@ function updatePlayback() {
       state.nextAudioTime += duration;
       continue;
     }
-    if (state.nextScheduleStep >= (looping ? bounds.end : loopLength)) {
-      if (looping) {
-        const selectedCount = document.getElementById("loopCount").value;
-        const count = selectedCount === "custom"
-          ? Math.max(1, Math.min(999, Number(document.getElementById("loopCustomCount").value) || 1))
-          : Number(selectedCount) || 0;
-        const pass = window.soundloomLoopPass || 1;
-        if (count === 0 || pass < count) {
-          window.soundloomLoopPass = pass + 1;
-          state.nextScheduleStep = bounds.start;
-          state.playbackStartAudioTime = state.nextAudioTime - bounds.start * duration;
-        } else {
-          window.soundloomLoopCompleted = true;
-          if (bounds.end >= loopLength) {
-            state.scheduledLoopEndAudioTime = state.nextAudioTime;
-            break;
-          }
-          // The selected section has finished its requested number of passes.
-          // Resume the remainder of the song on the next scheduler tick, using
-          // freshly calculated bounds with looping disabled.
-          state.nextScheduleStep = bounds.end;
-          state.playbackStartAudioTime = state.nextAudioTime - bounds.end * duration;
-          break;
-        }
-      } else {
+    const loopEnd = looping ? bounds.end : loopLength;
+    if (state.nextScheduleStep >= loopEnd) {
+      if (!looping) {
+        // A non-looping song has reached its real end.
         state.scheduledLoopEndAudioTime = state.nextAudioTime;
         break;
       }
+
+      const selectedCount = document.getElementById("loopCount").value;
+      const count = selectedCount === "custom"
+        ? Math.max(1, Math.min(999, Number(document.getElementById("loopCustomCount").value) || 1))
+        : Number(selectedCount) || 0;
+      const pass = window.soundloomLoopPass || 1;
+
+      if (count !== 0 && pass >= count) {
+        window.soundloomLoopCompleted = true;
+        if (bounds.end >= loopLength) {
+          // The loop covers the entire song, so finishing its final pass ends playback.
+          state.scheduledLoopEndAudioTime = state.nextAudioTime;
+          break;
+        }
+        // A finite section loop ends here, then the rest of the song plays once.
+        state.nextScheduleStep = bounds.end;
+        state.playbackStartAudioTime = state.nextAudioTime - bounds.end * duration;
+        break;
+      }
+
+      // Repeat the selected section. This path is deliberately explicit so
+      // ordinary songs retain their loop behavior independently of the demo.
+      window.soundloomLoopPass = pass + 1;
+      state.nextScheduleStep = bounds.start;
+      state.playbackStartAudioTime = state.nextAudioTime - bounds.start * duration;
     }
+
     playStep(state.nextScheduleStep, state.nextAudioTime);
     state.nextScheduleStep++;
     state.nextAudioTime += duration;
