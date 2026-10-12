@@ -3182,11 +3182,15 @@ function updatePlayback() {
     // on the user's editable loop toggle, loop selection, or generic loop state.
     if (sampleSongLooping && state.nextScheduleStep >= 32) {
       state.nextScheduleStep = 0;
-      state.playbackStartAudioTime = state.nextAudioTime;
+      // Keep the playback clock continuous. The boundary is scheduled ahead of
+      // real time; resetting the clock here makes the playhead jump early.
       window.soundloomSampleSongPlays = (window.soundloomSampleSongPlays || 0) + 1;
       if (window.soundloomSampleSongPlays >= 10 && !window.soundloomSampleSongEasterEggShown) {
         window.soundloomSampleSongEasterEggShown = true;
-        window.setTimeout(() => window.alert("Okay, I know it's good, go back to making music."), Math.max(0, (state.nextAudioTime - ctx.currentTime) * 1000));
+        const messageDelay = Math.max(0, (state.nextAudioTime - ctx.currentTime) * 1000);
+        window.setTimeout(() => {
+          if (window.soundloomSampleSongActive) window.alert("Okay, I know it's good, go back to making music.");
+        }, messageDelay);
       }
     } else if (!sampleSongLooping && state.nextScheduleStep >= (looping ? bounds.end : loopLength)) {
       if (looping) {
@@ -3224,7 +3228,10 @@ function updatePlayback() {
 
   const elapsedAudio = ctx.currentTime - state.playbackStartAudioTime;
   const currentStep = Math.max(0, Math.floor(elapsedAudio / duration));
-  state.playbackStep = Math.min(loopLength - 1, currentStep);
+  // The sample's playhead follows the continuous audio clock and wraps at 32.
+  state.playbackStep = sampleSongLooping
+    ? (currentStep % 32)
+    : Math.min(loopLength - 1, currentStep);
   updatePlayhead();
 
   if (state.scheduledLoopEndAudioTime !== null && ctx.currentTime >= state.scheduledLoopEndAudioTime) {
