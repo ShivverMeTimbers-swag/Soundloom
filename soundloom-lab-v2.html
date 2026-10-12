@@ -3178,16 +3178,18 @@ function updatePlayback() {
   let guard = 0;
 
   while (state.playing && state.nextAudioTime < scheduleUntil && guard++ < 512) {
-    if (state.nextScheduleStep >= (looping ? bounds.end : loopLength)) {
-      if (sampleSongLooping) {
-        state.nextScheduleStep = 0;
-        state.playbackStartAudioTime = state.nextAudioTime;
-        window.soundloomSampleSongPlays = (window.soundloomSampleSongPlays || 0) + 1;
-        if (window.soundloomSampleSongPlays >= 10 && !window.soundloomSampleSongEasterEggShown) {
-          window.soundloomSampleSongEasterEggShown = true;
-          window.setTimeout(() => window.alert("Okay, I know it's good, go back to making music."), Math.max(0, (state.nextAudioTime - ctx.currentTime) * 1000));
-        }
-      } else if (looping) {
+    // Sample playback has its own unconditional boundary. It must never depend
+    // on the user's editable loop toggle, loop selection, or generic loop state.
+    if (sampleSongLooping && state.nextScheduleStep >= 32) {
+      state.nextScheduleStep = 0;
+      state.playbackStartAudioTime = state.nextAudioTime;
+      window.soundloomSampleSongPlays = (window.soundloomSampleSongPlays || 0) + 1;
+      if (window.soundloomSampleSongPlays >= 10 && !window.soundloomSampleSongEasterEggShown) {
+        window.soundloomSampleSongEasterEggShown = true;
+        window.setTimeout(() => window.alert("Okay, I know it's good, go back to making music."), Math.max(0, (state.nextAudioTime - ctx.currentTime) * 1000));
+      }
+    } else if (!sampleSongLooping && state.nextScheduleStep >= (looping ? bounds.end : loopLength)) {
+      if (looping) {
         const selectedCount = document.getElementById("loopCount").value;
         const count = selectedCount === "custom"
           ? Math.max(1, Math.min(999, Number(document.getElementById("loopCustomCount").value) || 1))
