@@ -858,10 +858,11 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
           <option value="1">1 time</option><option value="2">2 times</option>
           <option value="3">3 times</option><option value="4">4 times</option>
           <option value="5">5 times</option><option value="10">10 times</option>
-          <option value="0" selected>Forever</option>
+          <option value="custom">Custom…</option><option value="0" selected>Forever</option>
         </select>
       </label>
-      <p class="dropdownHint">Note numbers are steps within each measure. The ending note is included.</p>
+      <label class="menuField" id="loopCustomCountRow" hidden>Custom plays <input id="loopCustomCount" type="number" min="1" max="999" value="6"></label>
+      <p class="dropdownHint">Note numbers are steps within each measure. The ending note is included. Custom plays means total plays.</p>
     </div>
   </details>
 
@@ -1015,7 +1016,16 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
         <option value="5/4">5/4</option>
         <option value="6/8">6/8</option>
         <option value="7/8">7/8</option>
+        <option value="custom">Custom…</option>
       </select>
+    </div>
+    <div class="settingRow" id="customTimeSignatureRow" hidden>
+      <div><strong>Custom Time Signature</strong><div class="settingDescription">Choose the beats per measure and note value.</div></div>
+      <div class="customTimeSignatureControls">
+        <label>Beats <input id="customTimeNumerator" type="number" min="1" max="12" value="4"></label>
+        <span>/</span>
+        <label>Note value <select id="customTimeDenominator"><option value="2">2</option><option value="4" selected>4</option><option value="8">8</option><option value="16">16</option></select></label>
+      </div>
     </div>
 
     <div class="settingRow">
@@ -1054,6 +1064,7 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
         <option value="chromatic">Chromatic</option>
         <option value="major">Major</option>
         <option value="minor">Minor</option>
+        <option value="pentatonic">Pentatonic</option>
       </select>
     </div>
 
@@ -1172,6 +1183,8 @@ const state = {
   darkMode: false,
 
   timeSignature: "4/4",
+  customTimeNumerator: 4,
+  customTimeDenominator: 4,
 
   category: "drums",
   currentInstrument: 0,
@@ -1256,7 +1269,6 @@ document
    ========================================================= */
 
 function getTimeSignatureInfo() {
-
   const signatures = {
     "2/4": { measureSteps: 8, beatSteps: 4 },
     "3/4": { measureSteps: 12, beatSteps: 4 },
@@ -1265,8 +1277,14 @@ function getTimeSignatureInfo() {
     "6/8": { measureSteps: 12, beatSteps: 6 },
     "7/8": { measureSteps: 14, beatSteps: 4 }
   };
-
-  return signatures[state.timeSignature] || signatures["4/4"];
+  if (signatures[state.timeSignature]) return signatures[state.timeSignature];
+  const match = String(state.timeSignature).match(/^(\d+)\/(2|4|8|16)$/);
+  if (match) {
+    const numerator = Math.max(1, Math.min(12, Number(match[1])));
+    const denominator = Number(match[2]);
+    return { measureSteps: Math.max(1, Math.round(numerator * 16 / denominator)), beatSteps: denominator === 8 ? 2 : denominator === 16 ? 1 : 4 };
+  }
+  return signatures["4/4"];
 }
 
 
@@ -2167,7 +2185,13 @@ document.getElementById('redoBtn').addEventListener('click', redoEdit);
 document.getElementById('copyBtn').addEventListener('click', copyPattern);
 document.getElementById('pasteBtn').addEventListener('click', () => pastePattern(true));
 document.getElementById('duplicateBtn').addEventListener('click', duplicatePattern);
-['loopStart','loopStartNote','loopEnd','loopEndNote'].forEach(id => document.getElementById(id).addEventListener('change', syncLoopInputs));
+['loopStart','loopStartNote','loopEnd','loopEndNote'].forEach(id => document.getElementById(id).addEventListener('change', () => { window.soundloomLoopCompleted = false; syncLoopInputs(); }));
+document.getElementById('loopEnabled').addEventListener('change', () => { window.soundloomLoopCompleted = false; });
+document.getElementById('loopCount').addEventListener('change', () => {
+  document.getElementById('loopCustomCountRow').hidden = document.getElementById('loopCount').value !== 'custom';
+  window.soundloomLoopCompleted = false;
+});
+document.getElementById('loopCustomCount').addEventListener('change', () => { window.soundloomLoopCompleted = false; });
 syncLoopInputs();
 document.getElementById('pasteBtn').disabled = true;
 
@@ -2671,6 +2695,8 @@ function playStep(step) {
 
 
 function startPlayback() {
+  window.soundloomLoopPass = 1;
+  window.soundloomLoopCompleted = false;
 
   if (state.playing) return;
 
@@ -2752,20 +2778,23 @@ function updatePlayback() {
     ) *
     beatSteps;
 
-  const loopEnabled = document.getElementById("loopEnabled").checked;
+  const loopEnabled = document.getElementById("loopEnabled").checked && !window.soundloomLoopCompleted;
   const bounds = loopEnabled ? loopBounds() : { start: 0, end: loopLength };
   const effectiveEnd = loopEnabled ? bounds.end : loopLength;
   if (newStep >= effectiveEnd) {
     if (loopEnabled) {
-      const count = Number(document.getElementById("loopCount").value) || 0;
+      const selectedCount = document.getElementById("loopCount").value;
+      const count = selectedCount === "custom"
+        ? Math.max(1, Math.min(999, Number(document.getElementById("loopCustomCount").value) || 1))
+        : Number(selectedCount) || 0;
       const pass = window.soundloomLoopPass || 1;
-      if (count === 0 || pass < count) {
+      if (!window.soundloomLoopCompleted && (count === 0 || pass < count)) {
         window.soundloomLoopPass = pass + 1;
         state.playbackStep = bounds.start;
         state.playbackStartTime = performance.now() - bounds.start * durationMs;
         playStep(state.playbackStep);
       } else {
-        document.getElementById("loopEnabled").checked = false;
+        window.soundloomLoopCompleted = true;
         if (bounds.end >= loopLength) { stopPlayback(); return; }
         // Let the normal playback branch play the step immediately after the loop.
         state.playbackStep = bounds.end - 1;
@@ -3215,21 +3244,14 @@ document
     "change",
     event => {
 
-      const allowed = [
-        "2/4",
-        "3/4",
-        "4/4",
-        "5/4",
-        "6/8",
-        "7/8"
-      ];
-
-      state.timeSignature =
-        allowed.includes(
-          event.target.value
-        )
-          ? event.target.value
-          : "4/4";
+      if (event.target.value === "custom") {
+        document.getElementById("customTimeSignatureRow").hidden = false;
+        state.timeSignature = `${state.customTimeNumerator}/${state.customTimeDenominator}`;
+      } else {
+        document.getElementById("customTimeSignatureRow").hidden = true;
+        state.timeSignature = event.target.value;
+      }
+      syncLoopInputs();
 
       renderCurrentInstrument();
 
@@ -3250,6 +3272,18 @@ document
     }
   );
 
+
+document.getElementById("customTimeNumerator").addEventListener("change", () => {
+  state.customTimeNumerator = Math.max(1, Math.min(12, Number(document.getElementById("customTimeNumerator").value) || 4));
+  document.getElementById("customTimeNumerator").value = state.customTimeNumerator;
+  if (document.getElementById("timeSignatureSelect").value === "custom") state.timeSignature = `${state.customTimeNumerator}/${state.customTimeDenominator}`;
+  syncLoopInputs(); renderCurrentInstrument(); autoSave();
+});
+document.getElementById("customTimeDenominator").addEventListener("change", () => {
+  state.customTimeDenominator = Number(document.getElementById("customTimeDenominator").value) || 4;
+  if (document.getElementById("timeSignatureSelect").value === "custom") state.timeSignature = `${state.customTimeNumerator}/${state.customTimeDenominator}`;
+  syncLoopInputs(); renderCurrentInstrument(); autoSave();
+});
 
 document
   .getElementById(
@@ -3414,21 +3448,15 @@ function loadProject(data) {
   state.autosave =
     data.autosave !== false;
 
-  const allowedTimeSignatures = [
-    "2/4",
-    "3/4",
-    "4/4",
-    "5/4",
-    "6/8",
-    "7/8"
-  ];
-
-  state.timeSignature =
-    allowedTimeSignatures.includes(
-      data.timeSignature
-    )
-      ? data.timeSignature
-      : "4/4";
+  const allowedTimeSignatures = ["2/4","3/4","4/4","5/4","6/8","7/8"];
+  state.timeSignature = allowedTimeSignatures.includes(data.timeSignature) ||
+    /^\d+\/(2|4|8|16)$/.test(String(data.timeSignature || ""))
+      ? data.timeSignature : "4/4";
+  const customSig = String(state.timeSignature).match(/^(\d+)\/(2|4|8|16)$/);
+  if (customSig) {
+    state.customTimeNumerator = Math.max(1, Math.min(12, Number(customSig[1])));
+    state.customTimeDenominator = Number(customSig[2]);
+  }
 
   state.instruments =
     data.instruments.map(
@@ -3521,10 +3549,22 @@ function loadProject(data) {
     "scaleSelect"
   ).value = state.scale;
 
-  document.getElementById(
-    "timeSignatureSelect"
-  ).value =
-    state.timeSignature;
+  const timeSelect = document.getElementById("timeSignatureSelect");
+  const knownSignatures = ["2/4","3/4","4/4","5/4","6/8","7/8"];
+  if (knownSignatures.includes(state.timeSignature)) {
+    timeSelect.value = state.timeSignature;
+    document.getElementById("customTimeSignatureRow").hidden = true;
+  } else {
+    timeSelect.value = "custom";
+    document.getElementById("customTimeSignatureRow").hidden = false;
+    const match = String(state.timeSignature).match(/^(\d+)\/(2|4|8|16)$/);
+    if (match) {
+      state.customTimeNumerator = Number(match[1]);
+      state.customTimeDenominator = Number(match[2]);
+      document.getElementById("customTimeNumerator").value = state.customTimeNumerator;
+      document.getElementById("customTimeDenominator").value = String(state.customTimeDenominator);
+    }
+  }
 
   document.getElementById(
     "autosaveToggle"
