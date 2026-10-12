@@ -2513,37 +2513,21 @@ function stepDuration() {
 const labVelocities = Object.create(null);
 let labDefaultVelocity = 0.75;
 let labSelectedVelocityNote = null;
-function labVelocityKey(instrument, step, row) {
-  return instrument.id + ":" + step + ":" + row;
-}
-function labGetVelocity(instrument, step, row) {
-  const key = labVelocityKey(instrument, step, row);
-  return Object.prototype.hasOwnProperty.call(labVelocities, key) ? labVelocities[key] : 0.75;
-}
-function labSetVelocity(instrument, step, row, value) {
-  labVelocities[labVelocityKey(instrument, step, row)] = Math.max(0.1, Math.min(1, value));
-}
-function labRenderVelocityAppearance() {
-  const instrument = getCurrentInstrument();
-  const modeOn = !!document.getElementById("velocityMode")?.checked;
-  document.querySelectorAll("#canvas .note").forEach(note => {
-    const step = Math.round((parseFloat(note.style.left) - 2) / CELL_WIDTH);
-    const row = Math.round((parseFloat(note.style.top) - 2) / ROW_HEIGHT);
-    if (!instrument) return;
-    const velocity = labGetVelocity(instrument, step, row);
-    // Make the strength difference obvious: low values are much fainter.
-    note.style.opacity = String(0.15 + velocity * 0.85);
-    note.style.filter = "saturate(" + (0.45 + velocity * 0.75) + ") brightness(" + (0.72 + velocity * 0.28) + ")";
-    note.title = "Velocity: " + Math.round(velocity * 100) + "%";
-    const exists = hasNote(instrument, step, row);
-    const selected = labSelectedVelocityNote &&
-      labSelectedVelocityNote.instrumentId === instrument.id &&
-      labSelectedVelocityNote.step === step &&
-      labSelectedVelocityNote.row === row;
-    note.classList.toggle("velocity-editing", modeOn && exists);
-    note.classList.toggle("velocity-selected", modeOn && exists && !!selected);
-  });
-}
+let noteEditorActive = false;
+function labVelocityKey(instrument,step,row){return instrument.id+":"+step+":"+row;}
+function labGetVelocity(instrument,step,row){const key=labVelocityKey(instrument,step,row);return Object.prototype.hasOwnProperty.call(labVelocities,key)?labVelocities[key]:0.75;}
+function labSetVelocity(instrument,step,row,value){labVelocities[labVelocityKey(instrument,step,row)]=Math.max(.1,Math.min(1,value));}
+function labPitchName(row){const names=["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];const midi=83-row;return names[((midi%12)+12)%12]+(Math.floor(midi/12)-1);}
+function labMeasureAndStep(step){const n=Math.max(1,getMeasureSteps());return {measure:Math.floor(step/n)+1,stepInMeasure:step%n+1};}
+function labRenderNoteStats(){const list=document.getElementById("noteStatsList"),instrument=getCurrentInstrument(),subtitle=document.getElementById("noteSidebarInstrument");if(!list||!instrument)return;subtitle.textContent=instrument.name||instrument.type||"Current instrument";const entries=[];Object.keys(instrument.notes||{}).map(Number).sort((x,y)=>x-y).forEach(step=>(instrument.notes[step]||[]).slice().sort((x,y)=>x-y).forEach(row=>{const p=labMeasureAndStep(step);entries.push({step,row,velocity:labGetVelocity(instrument,step,row),pitch:labPitchName(row),measure:p.measure,stepInMeasure:p.stepInMeasure});}));list.innerHTML="";if(!entries.length){const e=document.createElement("p");e.className="noteSidebarHint";e.textContent="No notes in this instrument yet. Close Note Editor to add some.";list.appendChild(e);return;}entries.forEach(item=>{const card=document.createElement("button");card.type="button";card.className="noteStatItem";const selected=labSelectedVelocityNote&&labSelectedVelocityNote.instrumentId===instrument.id&&labSelectedVelocityNote.step===item.step&&labSelectedVelocityNote.row===item.row;if(selected)card.classList.add("selected");const pitch=document.createElement("strong");pitch.textContent=item.pitch;const velocity=document.createElement("strong");velocity.textContent=Math.round(item.velocity*100)+"%";const place=document.createElement("span");place.textContent="Measure "+item.measure+" · Step "+item.stepInMeasure;const absolute=document.createElement("span");absolute.textContent="Grid step "+(item.step+1);card.append(pitch,velocity,place,absolute);card.addEventListener("click",()=>labSelectVelocityNote(instrument,item.step,item.row));list.appendChild(card);});}
+function labSelectVelocityNote(instrument,step,row){if(!instrument||!hasNote(instrument,step,row))return;labSelectedVelocityNote={instrumentId:instrument.id,step,row};labDefaultVelocity=labGetVelocity(instrument,step,row);document.getElementById("labVelocity").value=String(Math.round(labDefaultVelocity*100));document.getElementById("velocityValue").textContent=Math.round(labDefaultVelocity*100)+"%";labRenderVelocityAppearance();labRenderNoteStats();}
+function labRenderVelocityAppearance(){const instrument=getCurrentInstrument();document.querySelectorAll("#canvas .note").forEach(note=>{const step=Math.round((parseFloat(note.style.left)-2)/CELL_WIDTH),row=Math.round((parseFloat(note.style.top)-2)/ROW_HEIGHT);if(!instrument)return;const v=labGetVelocity(instrument,step,row),exists=hasNote(instrument,step,row),selected=labSelectedVelocityNote&&labSelectedVelocityNote.instrumentId===instrument.id&&labSelectedVelocityNote.step===step&&labSelectedVelocityNote.row===row;note.style.opacity=String(.15+v*.85);note.style.filter="saturate("+(0.45+v*.75)+") brightness("+(0.72+v*.28)+")";note.title=labPitchName(row)+" · Velocity "+Math.round(v*100)+"%";note.classList.toggle("velocity-editing",noteEditorActive&&exists);note.classList.toggle("velocity-selected",noteEditorActive&&exists&&!!selected);});if(noteEditorActive)labRenderNoteStats();}
+function labOpenNoteEditor(open){noteEditorActive=!!open;document.getElementById("noteEditorSidebar").hidden=!noteEditorActive;document.getElementById("noteEditorBtn").setAttribute("aria-pressed",String(noteEditorActive));document.getElementById("noteEditorBtn").classList.toggle("active",noteEditorActive);if(!noteEditorActive)labSelectedVelocityNote=null;labRenderVelocityAppearance();labRenderNoteStats();}
+document.getElementById("noteEditorBtn").addEventListener("click",()=>labOpenNoteEditor(!noteEditorActive));
+document.getElementById("closeNoteEditorBtn").addEventListener("click",()=>labOpenNoteEditor(false));
+document.getElementById("labVelocity").addEventListener("input",event=>{labDefaultVelocity=Number(event.target.value)/100;document.getElementById("velocityValue").textContent=event.target.value+"%";const n=labSelectedVelocityNote;if(!n)return;const i=state.instruments.find(item=>item.id===n.instrumentId);if(i&&hasNote(i,n.step,n.row)){labSetVelocity(i,n.step,n.row,labDefaultVelocity);labRenderVelocityAppearance();autoSave();}});
+document.getElementById("canvas").addEventListener("pointerdown",event=>{if(!noteEditorActive||event.button!==0)return;event.preventDefault();event.stopImmediatePropagation();const i=getCurrentInstrument(),p=getCellFromPointer(event);if(!i||p.step<0||p.row<0||p.row>=TOTAL_ROWS)return;if(!hasNote(i,p.step,p.row)){labSelectedVelocityNote=null;labRenderVelocityAppearance();labRenderNoteStats();return;}labSelectVelocityNote(i,p.step,p.row);},true);
+
 function labApplyPattern(kind) {
   const category = ({fourfloor:"drums", breakbeat:"drums", bass:"melody", arpeggio:"melody", chords:"chords"})[kind];
   setCategory(category);
@@ -2570,9 +2554,13 @@ function labApplyPattern(kind) {
   autoSave();
   updateHistoryButtons();
 }
-document.querySelectorAll("[data-lab-pattern]").forEach(button => {
-  button.addEventListener("click", () => labApplyPattern(button.dataset.labPattern));
-});
+document.querySelectorAll("[data-lab-pattern]").forEach(button=>button.addEventListener("click",()=>{labApplyPattern(button.dataset.labPattern);document.getElementById("patternLibraryOverlay").classList.remove("show");}));
+document.getElementById("patternLibraryBtn").addEventListener("click",()=>document.getElementById("patternLibraryOverlay").classList.add("show"));
+document.getElementById("closePatternLibraryBtn").addEventListener("click",()=>document.getElementById("patternLibraryOverlay").classList.remove("show"));
+document.getElementById("patternLibraryOverlay").addEventListener("click",e=>{if(e.target.id==="patternLibraryOverlay")e.currentTarget.classList.remove("show");});
+document.getElementById("keybindsBtn").addEventListener("click",()=>{document.getElementById("keybindsOverlay").classList.add("show");renderKeybindRows();});
+document.getElementById("closeKeybindsBtn").addEventListener("click",()=>document.getElementById("keybindsOverlay").classList.remove("show"));
+document.getElementById("keybindsOverlay").addEventListener("click",e=>{if(e.target.id==="keybindsOverlay")e.currentTarget.classList.remove("show");});
 document.getElementById("labGridSpacing").addEventListener("change", event => {
   CELL_WIDTH = Number(event.target.value) || 40;
   renderCurrentInstrument();
@@ -2593,33 +2581,7 @@ document.getElementById("labVelocity").addEventListener("input", event => {
     }
   }
 });
-document.getElementById("velocityMode").addEventListener("change", () => {
-  if (!document.getElementById("velocityMode").checked) labSelectedVelocityNote = null;
-  labRenderVelocityAppearance();
-});
-document.getElementById("canvas").addEventListener("pointerdown", event => {
-  if (!document.getElementById("velocityMode").checked || event.button !== 0) return;
-  // While velocity mode is active, swallow every grid click so the normal
-  // add/remove/drag editor never receives it—even when the cell is empty.
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  const instrument = getCurrentInstrument();
-  const {step, row} = getCellFromPointer(event);
-  if (!instrument || step < 0 || row < 0 || row >= TOTAL_ROWS) return;
-  if (!hasNote(instrument, step, row)) {
-    // Empty cells are locked and also clear the previous selection, so the
-    // slider cannot accidentally keep editing a note elsewhere.
-    labSelectedVelocityNote = null;
-    labRenderVelocityAppearance();
-    return;
-  }
-  labSelectedVelocityNote = {instrumentId: instrument.id, step, row};
-  const currentVelocity = labGetVelocity(instrument, step, row);
-  labDefaultVelocity = currentVelocity;
-  document.getElementById("labVelocity").value = String(Math.round(currentVelocity * 100));
-  document.getElementById("velocityValue").textContent = Math.round(currentVelocity * 100) + "%";
-  labRenderVelocityAppearance();
-}, true);
+
 
 function playStep(step) {
 
@@ -3721,28 +3683,8 @@ document.getElementById("closeHelpBtn").addEventListener("click", () => document
 document.getElementById("helpOverlay").addEventListener("click", event => { if (event.target.id === "helpOverlay") event.currentTarget.classList.remove("show"); });
 // Customizable keyboard shortcuts (stored locally, separate from project files).
 const KEYBIND_STORAGE_KEY = "soundloom_keybinds";
-const DEFAULT_KEYBINDS = {
-  instruments: "c",
-  settings: "q",
-  save: "s",
-  load: "l",
-  clear: "Escape",
-  close: "Shift",
-  play: " ",
-  previousTab: "ArrowLeft",
-  nextTab: "ArrowRight"
-};
-const KEYBIND_LABELS = {
-  instruments: "Choose / switch instrument",
-  settings: "Open Settings",
-  save: "Save project",
-  load: "Load project",
-  clear: "Clear project (confirmation first)",
-  close: "Close current menu",
-  play: "Play / Stop",
-  previousTab: "Previous category",
-  nextTab: "Next category"
-};
+const DEFAULT_KEYBINDS={instruments:"c",addInstrument:"a",removeInstrument:"r",settings:"q",keybinds:"k",help:"h",save:"s",load:"l",clear:"Escape",close:"Shift",play:" ",previousTab:"ArrowLeft",nextTab:"ArrowRight",drums:"1",melody:"2",chords:"3",editMenu:"e",loopMenu:"o",projectMenu:"p",soundMenu:"v",moreMenu:"m",patternLibrary:"b",noteEditor:"n",gridSpacing:"g",undo:"u",redo:"y",copy:"x",paste:"z",duplicate:"j",patternFourfloor:"F1",patternBreakbeat:"F2",patternBass:"F3",patternArpeggio:"F4",patternChords:"F5"};
+const KEYBIND_LABELS={instruments:"Open Instruments",addInstrument:"Add instrument",removeInstrument:"Remove instrument",settings:"Open Settings",keybinds:"Open Keyboard Controls",help:"Open Help",save:"Save project",load:"Load project",clear:"Clear project (confirm)",close:"Close current popup",play:"Play / Stop",previousTab:"Previous category",nextTab:"Next category",drums:"Switch to Drums",melody:"Switch to Melody",chords:"Switch to Chords",editMenu:"Open Edit menu",loopMenu:"Open Loop menu",projectMenu:"Open Project menu",soundMenu:"Open Sound menu",moreMenu:"Open More menu",patternLibrary:"Open Pattern Library",noteEditor:"Toggle Note Editor",gridSpacing:"Cycle grid spacing",undo:"Undo",redo:"Redo",copy:"Copy pattern",paste:"Paste pattern",duplicate:"Duplicate pattern",patternFourfloor:"Add Four-on-the-floor",patternBreakbeat:"Add Breakbeat",patternBass:"Add Bass pulse",patternArpeggio:"Add Arpeggio",patternChords:"Add Three-chord loop"};
 let keybinds = { ...DEFAULT_KEYBINDS };
 let waitingForKeybind = null;
 try {
@@ -3795,13 +3737,13 @@ function renderKeybindRows() {
   });
 }
 function anyOverlayOpen() {
-  return ["settingsOverlay", "instrumentMenuOverlay", "clearConfirmOverlay", "helpOverlay"].some(id => {
+  return ["settingsOverlay","instrumentMenuOverlay","clearConfirmOverlay","helpOverlay","keybindsOverlay","patternLibraryOverlay"].some(id => {
     const el = document.getElementById(id);
     return el && (el.classList.contains("show") || (id === "settingsOverlay" && getComputedStyle(el).display !== "none"));
   });
 }
 function closeTopOverlay() {
-  for (const id of ["helpOverlay", "instrumentMenuOverlay", "clearConfirmOverlay", "settingsOverlay"]) {
+  for (const id of ["helpOverlay","keybindsOverlay","patternLibraryOverlay","instrumentMenuOverlay","clearConfirmOverlay","settingsOverlay"]) {
     const el = document.getElementById(id);
     if (el && (el.classList.contains("show") || (id === "settingsOverlay" && getComputedStyle(el).display !== "none"))) {
       el.classList.remove("show");
@@ -3876,27 +3818,16 @@ document.addEventListener("keydown", event => {
   }
   if (anyOverlayOpen()) return;
 
-  switch (binding) {
-    case "instruments":
-      openInstrumentMenu("select"); event.preventDefault(); break;
-    case "settings":
-      document.getElementById("settingsBtn").click(); event.preventDefault(); break;
-    case "save":
-      document.getElementById("saveBtn").click(); event.preventDefault(); break;
-    case "load":
-      document.getElementById("loadBtn").click(); event.preventDefault(); break;
-    case "play":
-      document.getElementById("playBtn").click(); event.preventDefault(); break;
-    case "previousTab":
-    case "nextTab": {
-      const categories = ["drums", "melody", "chords"];
-      const index = categories.indexOf(state.category);
-      const delta = binding === "nextTab" ? 1 : -1;
-      setCategory(categories[(index + delta + categories.length) % categories.length]);
-      event.preventDefault();
-      break;
-    }
-  }
+  const clickIds={settings:"settingsBtn",help:"helpBtn",save:"saveBtn",load:"loadBtn",play:"playBtn",addInstrument:"addInstrumentBtn",removeInstrument:"removeInstrumentBtn",undo:"undoBtn",redo:"redoBtn",copy:"copyBtn",paste:"pasteBtn",duplicate:"duplicateBtn",keybinds:"keybindsBtn",patternLibrary:"patternLibraryBtn",noteEditor:"noteEditorBtn"};
+  if(clickIds[binding]){document.getElementById(clickIds[binding]).click();event.preventDefault();return;}
+  const menuIds={editMenu:"editMenu",loopMenu:"loopMenu",projectMenu:"projectMenu",soundMenu:"soundMenu",moreMenu:"moreMenu",gridSpacing:"gridSpacingMenu"};
+  if(menuIds[binding]){const m=document.getElementById(menuIds[binding]);m.open=!m.open;event.preventDefault();return;}
+  if(["drums","melody","chords"].includes(binding)){setCategory(binding);event.preventDefault();return;}
+  const patternKeys={patternFourfloor:"fourfloor",patternBreakbeat:"breakbeat",patternBass:"bass",patternArpeggio:"arpeggio",patternChords:"chords"};
+  if(patternKeys[binding]){labApplyPattern(patternKeys[binding]);event.preventDefault();return;}
+  if(binding==="gridSpacing"){const sel=document.getElementById("labGridSpacing"),values=["20","30","40","60"],i=values.indexOf(sel.value);sel.value=values[(i+1)%values.length];sel.dispatchEvent(new Event("change"));event.preventDefault();return;}
+  if(binding==="instruments"){openInstrumentMenu("select");event.preventDefault();return;}
+  if(binding==="previousTab"||binding==="nextTab"){const cats=["drums","melody","chords"],i=cats.indexOf(state.category),d=binding==="nextTab"?1:-1;setCategory(cats[(i+d+cats.length)%cats.length]);event.preventDefault();return;}
 });
 
 /* Robust toolbar menu dismissal.
