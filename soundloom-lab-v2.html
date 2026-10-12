@@ -3083,12 +3083,14 @@ function playStep(step) {
 
 
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden && state.playing) {
-    // Browsers may suspend the audio context when a page loses focus.
-    if (state.audioContext && state.audioContext.state === "suspended") {
-      state.audioContext.resume().catch(() => {});
-    }
+  if (!state.playing) return;
+  // Resume audio when returning to the tab; browsers commonly suspend it on focus changes.
+  if (state.audioContext && state.audioContext.state === "suspended") {
+    state.audioContext.resume().catch(() => {});
   }
+  // Re-sync immediately after a background-tab pause so playback does not wait
+  // for a throttled animation frame. Background playback is still browser-policy dependent.
+  if (!document.hidden) updatePlayback();
 });
 
 function startPlayback() {
@@ -3182,7 +3184,13 @@ function updatePlayback() {
 
   const sampleSongLooping = !!window.soundloomSampleSongActive;
   const loopEnabled = sampleSongLooping || (document.getElementById("loopEnabled").checked && !window.soundloomLoopCompleted);
-  const bounds = sampleSongLooping ? { start: 0, end: loopLength } : (loopEnabled ? loopBounds() : { start: 0, end: loopLength });
+  let bounds = sampleSongLooping ? { start: 0, end: loopLength } : (loopEnabled ? loopBounds() : { start: 0, end: loopLength });
+  // Keep loop points inside the current song's timeline; otherwise a loop can
+  // wait beyond the actual song end and appear not to repeat.
+  if (!sampleSongLooping) {
+    bounds.start = Math.max(0, Math.min(loopLength - 1, bounds.start));
+    bounds.end = Math.max(bounds.start + 1, Math.min(loopLength, bounds.end));
+  }
   const effectiveEnd = loopEnabled ? bounds.end : loopLength;
   if (newStep >= effectiveEnd) {
     if (sampleSongLooping) {
@@ -4229,14 +4237,16 @@ document.getElementById("helpBtn").addEventListener("click", () => { document.ge
 document.getElementById("loadSampleSongBtn").addEventListener("click", loadSampleSong);
 
 function loadSampleSong() {
-  window.soundloomSampleSongActive = true;
-  window.soundloomSampleSongPlays = 0;
-  window.soundloomSampleSongEasterEggShown = false;
   const hasNotes = state.instruments.some(instrument =>
     Object.values(instrument.notes || {}).some(rows => Array.isArray(rows) && rows.length) ||
     Object.keys(instrument.chords || {}).length
   );
   if (hasNotes && !window.confirm("Load the sample song? This replaces the current project. Save your work first if you want to keep it.")) return;
+  // Only enable sample-song looping after the user confirms replacing the project.
+  window.soundloomSampleSongActive = false;
+  window.soundloomSampleSongPlays = 0;
+  window.soundloomSampleSongEasterEggShown = false;
+  if (state.playing) stopPlayback();
 
   const makeDemoInstrument = (name, category, type, notes, chords = {}) => ({
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
@@ -4269,6 +4279,9 @@ function loadSampleSong() {
       makeDemoInstrument("Demo Chords", "chords", "chord-piano", chordNotes, chordMap)
     ]
   });
+  window.soundloomSampleSongActive = true;
+  window.soundloomSampleSongPlays = 0;
+  window.soundloomSampleSongEasterEggShown = false;
   autoSave();
   buildWholeSongView();
   document.getElementById("helpOverlay").classList.remove("show");
