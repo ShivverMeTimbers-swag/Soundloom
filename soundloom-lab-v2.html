@@ -3096,12 +3096,14 @@ document.addEventListener("visibilitychange", () => {
 });
 
 function playbackBounds() {
-  const songLength = getSongLength();
-  const beatSteps = Math.max(1, getBeatSteps());
-  const loopLength = Math.max(1, Math.ceil(songLength / beatSteps) * beatSteps);
   const sampleSongLooping = !!window.soundloomSampleSongActive;
+  // The demo is deliberately a fixed 32-step phrase. Do not let grid expansion,
+  // the selected instrument, or a stale loop selection shorten its repeat range.
+  const songLength = sampleSongLooping ? 32 : getSongLength();
+  const beatSteps = Math.max(1, getBeatSteps());
+  const loopLength = sampleSongLooping ? 32 : Math.max(1, Math.ceil(songLength / beatSteps) * beatSteps);
   const looping = sampleSongLooping || (document.getElementById("loopEnabled").checked && !window.soundloomLoopCompleted);
-  let bounds = sampleSongLooping ? {start:0,end:loopLength} : (looping ? loopBounds() : {start:0,end:loopLength});
+  let bounds = sampleSongLooping ? {start:0,end:32} : (looping ? loopBounds() : {start:0,end:loopLength});
   if (!sampleSongLooping) {
     bounds.start = Math.max(0, Math.min(loopLength - 1, bounds.start));
     bounds.end = Math.max(bounds.start + 1, Math.min(loopLength, bounds.end));
