@@ -520,8 +520,17 @@ body:not(.dark-mode) { background:#fbf8f2; color:#302b3b; }
 body:not(.dark-mode) #topbar { background:linear-gradient(110deg,#f7f0ff 0%,#fffaf1 65%,#eef8f7 100%); border-bottom-color:#e5dff0; }
 body:not(.dark-mode) #categoryBar { background:#fffdf9; border-bottom-color:#e9e1d6; }
 body:not(.dark-mode) .categoryButton { color:#766d83; }
-body:not(.dark-mode) .categoryButton:hover { background:#f3eefb; }
-body:not(.dark-mode) .categoryButton.active { background:#e9e0fb; color:#45366f; }
+
+/* Light-mode category tabs use their instrument colors; dark mode stays unchanged. */
+body:not(.dark-mode) .categoryButton[data-category="melody"] { color:#287db8; background:#eaf5fc; }
+body:not(.dark-mode) .categoryButton[data-category="drums"] { color:#6f59bd; background:#f0ebfc; }
+body:not(.dark-mode) .categoryButton[data-category="chords"] { color:#a85f1b; background:#fff0df; }
+body:not(.dark-mode) .categoryButton[data-category="melody"]:hover { background:#d9edfb; }
+body:not(.dark-mode) .categoryButton[data-category="drums"]:hover { background:#e4dafb; }
+body:not(.dark-mode) .categoryButton[data-category="chords"]:hover { background:#ffe4c6; }
+body:not(.dark-mode) .categoryButton[data-category="melody"].active { background:#4d9fdb; color:#fff; }
+body:not(.dark-mode) .categoryButton[data-category="drums"].active { background:#8a78d8; color:#fff; }
+body:not(.dark-mode) .categoryButton[data-category="chords"].active { background:#e59b4c; color:#fff; }
 body:not(.dark-mode) button { background:#fffdf9; border-color:#ded5e9; color:#383044; }
 body:not(.dark-mode) button:hover { background:#f3eefb; border-color:#c8b9e5; }
 body:not(.dark-mode) button.active { background:#5b4b87; border-color:#5b4b87; color:#fff; }
