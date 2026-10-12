@@ -3105,7 +3105,15 @@ function startPlayback() {
 }
 
 
-function stopPlayback() {
+function stopPlayback(completedNaturally = false) {
+
+  if (completedNaturally && window.soundloomSampleSongActive) {
+    window.soundloomSampleSongPlays = (window.soundloomSampleSongPlays || 0) + 1;
+    if (window.soundloomSampleSongPlays >= 10) {
+      window.soundloomSampleSongActive = false;
+      window.alert("Okay, I know it's good, go back to making music.");
+    }
+  }
 
   state.playing = false;
 
@@ -3183,13 +3191,13 @@ function updatePlayback() {
         playStep(state.playbackStep);
       } else {
         window.soundloomLoopCompleted = true;
-        if (bounds.end >= loopLength) { stopPlayback(); return; }
+        if (bounds.end >= loopLength) { stopPlayback(true); return; }
         // Let the normal playback branch play the step immediately after the loop.
         state.playbackStep = bounds.end - 1;
         state.playbackStartTime = performance.now() - bounds.end * durationMs;
       }
     } else {
-      stopPlayback();
+      stopPlayback(true);
       return;
     }
   } else if (newStep < bounds.start) {
@@ -4203,6 +4211,8 @@ document.getElementById("helpBtn").addEventListener("click", () => { document.ge
 document.getElementById("loadSampleSongBtn").addEventListener("click", loadSampleSong);
 
 function loadSampleSong() {
+  window.soundloomSampleSongActive = true;
+  window.soundloomSampleSongPlays = 0;
   const hasNotes = state.instruments.some(instrument =>
     Object.values(instrument.notes || {}).some(rows => Array.isArray(rows) && rows.length) ||
     Object.keys(instrument.chords || {}).length
