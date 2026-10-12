@@ -3189,7 +3189,7 @@ function updatePlayback() {
         window.soundloomSampleSongEasterEggShown = true;
         const messageDelay = Math.max(0, (state.nextAudioTime - ctx.currentTime) * 1000);
         window.setTimeout(() => {
-          if (window.soundloomSampleSongActive) window.alert("Okay, I know it's good, go back to making music.");
+          window.alert("Okay, I know it's good, go back to making music.");
         }, messageDelay);
       }
     } else if (!sampleSongLooping && state.nextScheduleStep >= (looping ? bounds.end : loopLength)) {
@@ -4507,6 +4507,9 @@ document.getElementById("welcomeStart").addEventListener("click", dismissWelcome
 document.getElementById("backToStartBtn").addEventListener("click", () => {
   const openMenus = document.querySelectorAll("#topbar details[open]");
   openMenus.forEach(menu => { menu.open = false; });
+  // The front door is a visual overlay, but leaving the workspace should also
+  // stop playback so audio and the playhead cannot keep running behind it.
+  if (state.playing) stopPlayback();
   if (welcomeScreen) welcomeScreen.hidden = false;
 });
 document.getElementById("welcomeOpen").addEventListener("click", () => {
