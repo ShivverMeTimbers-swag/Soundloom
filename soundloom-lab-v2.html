@@ -6,6 +6,19 @@
 <title>Soundloom Lab v2 — Experimental Copy</title>
 
 <style>
+/* Custom fraction-style editors */
+.fractionMaker { display:flex; flex-direction:column; align-items:stretch; gap:5px; min-width:92px; }
+.fractionMaker input[type="number"] { width:100%; min-width:0; box-sizing:border-box; text-align:center; font-size:16px; padding:6px 8px; border:1px solid #d7d7d7; border-radius:7px; background:#fff; color:#222; }
+.fractionMaker .fractionLine { height:2px; background:currentColor; margin:0 2px; opacity:.75; }
+.fractionMakerPanel { border:1px solid #dedede; border-radius:10px; padding:12px; margin-top:8px; background:#fafafa; }
+.fractionMakerPanel[hidden] { display:none !important; }
+.fractionMakerPanel .fractionActions { display:flex; gap:7px; margin-top:10px; }
+.fractionMakerPanel .fractionActions button { flex:1; }
+.customMakerPopover { position:relative; z-index:5; }
+body.dark-mode .fractionMaker input[type="number"], body.dark-mode .fractionMakerPanel { background:#242424; color:#eee; border-color:#555; }
+body.dark-mode .fractionMakerPanel { background:#292929; }
+/* Keep Lab Tools dismissible even if another control stops propagation. */
+
 * {
   box-sizing: border-box;
 }
@@ -861,7 +874,11 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
           <option value="custom">Custom…</option><option value="0" selected>Forever</option>
         </select>
       </label>
-      <label class="menuField" id="loopCustomCountRow" hidden>Custom plays <input id="loopCustomCount" type="number" min="1" max="999" value="6"></label>
+      <div class="fractionMakerPanel" id="loopCustomCountRow" hidden>
+        <strong>Custom Loop Duration</strong>
+        <p class="dropdownHint">How many total times should the selected section play?</p>
+        <div class="fractionMaker"><input id="loopCustomCount" type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="999" step="1" value="6" aria-label="Number of loop plays"></div>
+      </div>
       <p class="dropdownHint">Note numbers are steps within each measure. The ending note is included. Custom plays means total plays.</p>
     </div>
   </details>
@@ -1019,13 +1036,15 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
         <option value="custom">Custom…</option>
       </select>
     </div>
-    <div class="settingRow" id="customTimeSignatureRow" hidden>
-      <div><strong>Custom Time Signature</strong><div class="settingDescription">Choose the beats per measure and note value.</div></div>
-      <div class="customTimeSignatureControls">
-        <label>Beats <input id="customTimeNumerator" type="number" min="1" max="12" value="4"></label>
-        <span>/</span>
-        <label>Note value <select id="customTimeDenominator"><option value="2">2</option><option value="4" selected>4</option><option value="8">8</option><option value="16">16</option></select></label>
+    <div class="fractionMakerPanel customMakerPopover" id="customTimeSignatureRow" hidden>
+      <strong>Time Signature Maker</strong>
+      <p class="dropdownHint">Enter the top and bottom numbers of your time signature.</p>
+      <div class="fractionMaker" aria-label="Custom time signature fraction">
+        <input id="customTimeNumerator" type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="12" step="1" value="4" aria-label="Time signature numerator">
+        <div class="fractionLine"></div>
+        <input id="customTimeDenominator" type="number" inputmode="numeric" pattern="[0-9]*" min="2" max="16" step="1" value="4" aria-label="Time signature denominator">
       </div>
+      <div class="fractionActions"><button id="applyCustomTimeSignature" type="button">Apply</button><button id="cancelCustomTimeSignature" type="button">Cancel</button></div>
     </div>
 
     <div class="settingRow">
@@ -2191,6 +2210,11 @@ document.getElementById('loopCount').addEventListener('change', () => {
   document.getElementById('loopCustomCountRow').hidden = document.getElementById('loopCount').value !== 'custom';
   window.soundloomLoopCompleted = false;
 });
+document.getElementById('loopCustomCount').addEventListener('change', () => {
+  const field = document.getElementById('loopCustomCount');
+  field.value = Math.max(1, Math.min(999, Math.floor(Number(field.value) || 1)));
+  window.soundloomLoopCompleted = false;
+});
 document.getElementById('loopCustomCount').addEventListener('change', () => { window.soundloomLoopCompleted = false; });
 syncLoopInputs();
 document.getElementById('pasteBtn').disabled = true;
@@ -3246,12 +3270,11 @@ document
 
       if (event.target.value === "custom") {
         document.getElementById("customTimeSignatureRow").hidden = false;
-        state.timeSignature = `${state.customTimeNumerator}/${state.customTimeDenominator}`;
       } else {
         document.getElementById("customTimeSignatureRow").hidden = true;
         state.timeSignature = event.target.value;
+        syncLoopInputs(); renderCurrentInstrument(); autoSave();
       }
-      syncLoopInputs();
 
       renderCurrentInstrument();
 
@@ -3273,17 +3296,28 @@ document
   );
 
 
-document.getElementById("customTimeNumerator").addEventListener("change", () => {
-  state.customTimeNumerator = Math.max(1, Math.min(12, Number(document.getElementById("customTimeNumerator").value) || 4));
-  document.getElementById("customTimeNumerator").value = state.customTimeNumerator;
-  if (document.getElementById("timeSignatureSelect").value === "custom") state.timeSignature = `${state.customTimeNumerator}/${state.customTimeDenominator}`;
-  syncLoopInputs(); renderCurrentInstrument(); autoSave();
+function applyCustomTimeSignature() {
+  const top = document.getElementById("customTimeNumerator");
+  const bottom = document.getElementById("customTimeDenominator");
+  state.customTimeNumerator = Math.max(1, Math.min(12, Math.floor(Number(top.value) || 4)));
+  const allowedDenominators = [2,4,8,16];
+  state.customTimeDenominator = allowedDenominators.includes(Number(bottom.value)) ? Number(bottom.value) : 4;
+  top.value = state.customTimeNumerator;
+  bottom.value = state.customTimeDenominator;
+  state.timeSignature = `${state.customTimeNumerator}/${state.customTimeDenominator}`;
+  document.getElementById("customTimeSignatureRow").hidden = true;
+  syncLoopInputs(); renderCurrentInstrument();
+  if (document.getElementById("wholeSong").classList.contains("show")) buildWholeSongView();
+  autoSave();
+}
+document.getElementById("applyCustomTimeSignature").addEventListener("click", applyCustomTimeSignature);
+document.getElementById("cancelCustomTimeSignature").addEventListener("click", () => {
+  document.getElementById("customTimeSignatureRow").hidden = true;
+  const known = ["2/4","3/4","4/4","5/4","6/8","7/8"];
+  document.getElementById("timeSignatureSelect").value = known.includes(state.timeSignature) ? state.timeSignature : "custom";
 });
-document.getElementById("customTimeDenominator").addEventListener("change", () => {
-  state.customTimeDenominator = Number(document.getElementById("customTimeDenominator").value) || 4;
-  if (document.getElementById("timeSignatureSelect").value === "custom") state.timeSignature = `${state.customTimeNumerator}/${state.customTimeDenominator}`;
-  syncLoopInputs(); renderCurrentInstrument(); autoSave();
-});
+document.getElementById("customTimeNumerator").addEventListener("keydown", event => { if (event.key === "Enter") applyCustomTimeSignature(); });
+document.getElementById("customTimeDenominator").addEventListener("keydown", event => { if (event.key === "Enter") applyCustomTimeSignature(); });
 
 document
   .getElementById(
@@ -3556,7 +3590,7 @@ function loadProject(data) {
     document.getElementById("customTimeSignatureRow").hidden = true;
   } else {
     timeSelect.value = "custom";
-    document.getElementById("customTimeSignatureRow").hidden = false;
+    document.getElementById("customTimeSignatureRow").hidden = true;
     const match = String(state.timeSignature).match(/^(\d+)\/(2|4|8|16)$/);
     if (match) {
       state.customTimeNumerator = Number(match[1]);
@@ -3968,9 +4002,13 @@ document.addEventListener("pointerdown", event => {
   if (!clickedMenu) {
     closeToolbarMenusExcept();
   } else if (event.target.closest("summary")) {
-    // Switching menus closes any previously open dropdown.
     closeToolbarMenusExcept(clickedMenu);
   }
+}, true);
+// Dedicated Lab Tools outside-click dismissal, independent of menu event bubbling.
+document.addEventListener("pointerdown", event => {
+  const lab = document.getElementById("labToolsMenu");
+  if (lab && lab.open && !lab.contains(event.target)) lab.open = false;
 }, true);
 
 // Keep a click fallback for keyboard-triggered or synthetic clicks.
