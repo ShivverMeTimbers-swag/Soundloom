@@ -3102,8 +3102,11 @@ function playbackBounds() {
   const songLength = sampleSongLooping ? 32 : getSongLength();
   const beatSteps = Math.max(1, getBeatSteps());
   const loopLength = sampleSongLooping ? 32 : Math.max(1, Math.ceil(songLength / beatSteps) * beatSteps);
-  const looping = sampleSongLooping || (document.getElementById("loopEnabled").checked && !window.soundloomLoopCompleted);
-  let bounds = sampleSongLooping ? {start:0,end:32} : (looping ? loopBounds() : {start:0,end:loopLength});
+  const sectionLoopEnabled = document.getElementById("loopEnabled").checked && !window.soundloomLoopCompleted;
+  // User-made songs always repeat from the beginning. The Loop menu only
+  // overrides the full-song repeat when a specific section is enabled.
+  const looping = sampleSongLooping || true;
+  let bounds = sampleSongLooping ? {start:0,end:32} : (sectionLoopEnabled ? loopBounds() : {start:0,end:loopLength});
   if (!sampleSongLooping) {
     bounds.start = Math.max(0, Math.min(loopLength - 1, bounds.start));
     bounds.end = Math.max(bounds.start + 1, Math.min(loopLength, bounds.end));
@@ -3210,13 +3213,16 @@ function updatePlayback() {
         break;
       }
 
+      const sectionLoopEnabled = document.getElementById("loopEnabled").checked && !window.soundloomLoopCompleted;
       const selectedCount = document.getElementById("loopCount").value;
       const count = selectedCount === "custom"
         ? Math.max(1, Math.min(999, Number(document.getElementById("loopCustomCount").value) || 1))
         : Number(selectedCount) || 0;
       const pass = window.soundloomLoopPass || 1;
 
-      if (count !== 0 && pass >= count) {
+      // Only the explicitly selected section uses a finite repeat count.
+      // The full song follows the v0.6 rule and repeats forever by default.
+      if (sectionLoopEnabled && count !== 0 && pass >= count) {
         window.soundloomLoopCompleted = true;
         if (bounds.end >= loopLength) {
           // The loop covers the entire song, so finishing its final pass ends playback.
