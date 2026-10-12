@@ -1,0 +1,3937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soundloom Lab v2 — Experimental Copy</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #fff;
+  color: #222;
+  overflow: hidden;
+  transition: background .2s, color .2s;
+}
+
+button, select, input { font: inherit; }
+#topbar button { flex-shrink: 0; }
+#topbar button:disabled { opacity: .4; cursor: default; }
+#topbar .small-control input[type="number"] { width: 48px; }
+
+
+button {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #222;
+  border-radius: 8px;
+  padding: 8px 13px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s, transform .08s;
+}
+
+button:hover {
+  background: #f7f7f7;
+  border-color: #ccc;
+}
+
+button:active {
+  transform: scale(.97);
+}
+
+button.active {
+  background: #222;
+  color: #fff;
+  border-color: #222;
+}
+
+/* ---------- TOP BAR ---------- */
+#topbar {
+  min-height: 58px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #e9e9e9;
+  white-space: nowrap;
+  overflow: visible;
+  position: relative;
+  z-index: 50;
+  background: #fff;
+}
+#topbar .primaryAction { background:#242424; color:#fff; border-color:#242424; padding-left:16px; padding-right:16px; }
+#topbar .primaryAction:hover { background:#444; }
+#logo { font-size:21px; font-weight:700; margin-right:8px; letter-spacing:-.5px; }
+#logo span { font-weight:400; color:#777; }
+#backToStartBtn { flex-shrink:0; border:1px solid #ded8f1; border-radius:9px; padding:8px 11px; background:#f7f4ff; color:#5e4ab4; font-size:13px; font-weight:650; }
+#backToStartBtn:hover { background:#eee8ff; }
+body.dark-mode #backToStartBtn { background:#2b263a; border-color:#4a415f; color:#d2c8ff; }
+body.dark-mode #backToStartBtn:hover { background:#39314e; }
+#instrumentName { margin-left:auto; min-width:70px; max-width:150px; text-align:center; color:#666; font-size:13px; overflow:hidden; text-overflow:ellipsis; }
+.small-control { display:flex; align-items:center; gap:5px; font-size:13px; color:#666; }
+.bpmControl { border:1px solid #e5e5e5; padding:5px 7px; border-radius:8px; background:#fafafa; }
+.toolbarMenu { position:relative; flex-shrink:0; }
+.toolbarMenu > summary { list-style:none; cursor:pointer; border:1px solid #ddd; border-radius:8px; padding:8px 11px; background:#fff; color:#333; font-size:14px; user-select:none; }
+.toolbarMenu > summary::-webkit-details-marker { display:none; }
+.toolbarMenu > summary::after { content:' ▾'; color:#888; font-size:11px; }
+.toolbarMenu[open] > summary { background:#f3f3f3; border-color:#cfcfcf; }
+.toolbarDropdown { position:absolute; top:calc(100% + 7px); right:0; min-width:180px; padding:8px; display:flex; flex-direction:column; gap:5px; border:1px solid #e2e2e2; border-radius:12px; background:#fff; box-shadow:0 12px 32px rgba(0,0,0,.13); z-index:100; white-space:normal; }
+.toolbarDropdown button { width:100%; text-align:left; background:#fff; border-color:transparent; padding:9px 10px; }
+.toolbarDropdown button:hover { background:#f4f4f4; border-color:#eee; }
+/* Nested Lab Tools submenu: keep its trigger and panel visually inside the parent menu. */
+#labToolsMenu > .toolbarDropdown { min-width:205px; }
+#labToolsMenu .nestedToolbarMenu { width:100%; }
+#labToolsMenu .nestedToolbarMenu > summary { display:block; width:100%; box-sizing:border-box; text-align:left; border-color:transparent; padding:9px 10px; background:#fff; }
+#labToolsMenu .nestedToolbarMenu > summary:hover,
+#labToolsMenu .nestedToolbarMenu[open] > summary { background:#f4f4f4; border-color:#eee; }
+#labToolsMenu .nestedToolbarMenu > .toolbarDropdown { top:0; left:calc(100% + 8px); right:auto; min-width:205px; }
+body.dark-mode #labToolsMenu .nestedToolbarMenu > summary { background:#282828; color:#eee; }
+body.dark-mode #labToolsMenu .nestedToolbarMenu > summary:hover,
+body.dark-mode #labToolsMenu .nestedToolbarMenu[open] > summary { background:#393939; border-color:#505050; }
+.dropdownDivider { height:1px; background:#eee; margin:3px 2px; }
+.loopDropdown { min-width:205px; gap:10px; }
+.menuCheck { display:flex; align-items:center; gap:8px; font-size:14px; }
+.menuField { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#555; font-size:13px; }
+.menuField input { width:64px; padding:5px; border:1px solid #ddd; border-radius:6px; }
+.dropdownHint { margin:0; font-size:11px; color:#888; line-height:1.4; }
+.soundDropdown { min-width:220px; }
+#volumeControl { display:grid; grid-template-columns:1fr auto; align-items:center; gap:8px; font-size:13px; color:#555; white-space:normal; }
+#volumeControl input { grid-column:1; width:100% !important; }
+#volumeValue { grid-column:2; grid-row:1 / span 2; min-width:35px; text-align:right; }
+body.dark-mode #topbar { background:#202020; border-color:#3b3b3b; }
+body.dark-mode .toolbarMenu > summary { background:#292929; color:#eee; border-color:#494949; }
+body.dark-mode .toolbarMenu[open] > summary { background:#383838; }
+body.dark-mode .toolbarDropdown { background:#282828; border-color:#484848; box-shadow:0 12px 32px rgba(0,0,0,.35); }
+body.dark-mode .toolbarDropdown button { background:#282828; color:#eee; }
+body.dark-mode .toolbarDropdown button:hover { background:#393939; border-color:#505050; }
+body.dark-mode .dropdownDivider { background:#444; }
+body.dark-mode .menuField, body.dark-mode #volumeControl { color:#ddd; }
+body.dark-mode .menuField input { background:#202020; color:#eee; border-color:#555; }
+body.dark-mode .dropdownHint { color:#aaa; }
+
+
+.small-control input,
+.small-control select {
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  padding: 6px 7px;
+  background: white;
+  color: #222;
+}
+body.dark-mode .small-control input,
+body.dark-mode .small-control select { background:#202020; color:#eee; border-color:#555; }
+
+/* ---------- CATEGORY BAR ---------- */
+
+#categoryBar {
+  height: 45px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 1px solid #ededed;
+  background: #fff;
+}
+
+.categoryButton {
+  border: none;
+  border-radius: 7px;
+  padding: 7px 19px;
+  color: #777;
+  background: transparent;
+  font-size: 14px;
+}
+
+.categoryButton:hover {
+  background: #f6f6f6;
+}
+
+.categoryButton.active {
+  color: #222;
+  background: #f0f0f0;
+  font-weight: 600;
+}
+
+/* ---------- WORKSPACE ---------- */
+
+#workspace {
+  position: relative;
+  height: calc(100% - 103px);
+  display: flex;
+  overflow: hidden;
+}
+
+#instrumentStrip {
+  width: 18px;
+  min-width: 18px;
+  height: 100%;
+  border-right: 1px solid #eee;
+  background: #fafafa;
+  touch-action: pan-y;
+}
+
+#gridArea {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+#gridFrame {
+  position: absolute;
+  inset: 8px 8px 8px 8px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  transition: background .2s, border-color .2s, box-shadow .2s;
+}
+
+#gridFrame.flash {
+  box-shadow: 0 0 0 3px rgba(0,0,0,.025);
+}
+
+#instrumentIndicator {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  z-index: 20;
+  padding: 5px 9px;
+  border-radius: 7px;
+  background: rgba(255,255,255,.92);
+  border: 1px solid #eee;
+  font-size: 12px;
+  color: #666;
+  pointer-events: none;
+  transition: transform .2s, color .2s, background .2s, border-color .2s;
+}
+
+#instrumentIndicator.switching {
+  transform: scale(1.07);
+}
+
+#scrollViewport {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d5d5d5 transparent;
+}
+
+#scrollViewport::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+#scrollViewport::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 10px;
+}
+
+#canvas {
+  position: relative;
+  min-width: 2560px;
+  min-height: 1320px;
+  user-select: none;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+/* ---------- GRID ---------- */
+
+.row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 22px;
+  border-bottom: 1px solid #eee;
+}
+
+.cell {
+  position: absolute;
+  top: 0;
+  height: 21px;
+  border-right: 1px solid #f0f0f0;
+}
+
+.cell.beat {
+  border-right-color: #ddd;
+}
+
+.cell.bar {
+  border-right-color: #bbb;
+  border-right-width: 2px;
+}
+
+.cell.subbeat {
+  border-right-color: #e5e5e5;
+}
+
+.note {
+  position: absolute;
+  height: 18px;
+  border-radius: 3px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ---------- PLAYHEAD ---------- */
+
+#playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #222;
+  z-index: 30;
+  pointer-events: none;
+  transform: translateX(-2px);
+}
+
+#playheadDot {
+  position: absolute;
+  top: 3px;
+  left: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #222;
+}
+
+/* ---------- EMPTY STATE ---------- */
+
+#emptyState {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: #aaa;
+  font-size: 14px;
+  z-index: 1;
+}
+
+#emptyState span {
+  background: rgba(255,255,255,.88);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+/* ---------- OVERLAYS ---------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,.82);
+  backdrop-filter: blur(5px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.overlay.show {
+  display: flex;
+}
+
+.panel {
+  width: min(520px, calc(100% - 30px));
+  max-height: calc(100% - 30px);
+  overflow: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 13px;
+  padding: 22px;
+}
+
+.panel h2 {
+  margin: 0 0 18px;
+  font-size: 20px;
+}
+
+.settingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.settingRow:last-child {
+  border-bottom: none;
+}
+
+.settingDescription {
+  color: #777;
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+.panelActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+/* ---------- WHOLE SONG VIEW ---------- */
+
+#wholeSong {
+  position: fixed;
+  inset: 103px 0 0 0;
+  background: white;
+  display: none;
+  z-index: 80;
+  overflow: auto;
+}
+
+#wholeSong.show {
+  display: block;
+}
+
+#wholeHeader {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(255,255,255,.96);
+  border-bottom: 1px solid #eee;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#wholeHeader strong {
+  font-size: 15px;
+}
+
+#wholeScroller {
+  overflow-x: auto;
+  padding: 18px;
+}
+
+#wholeTimeline {
+  position: relative;
+  min-width: 1000px;
+  min-height: 330px;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.overviewGroup {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 100px;
+  border-bottom: 1px solid #eee;
+}
+
+.overviewGroup:last-child {
+  border-bottom: none;
+}
+
+.overviewLabel {
+  position: absolute;
+  left: 12px;
+  top: 11px;
+  z-index: 3;
+  font-size: 12px;
+  color: #777;
+  font-weight: 600;
+}
+
+.overviewNote {
+  position: absolute;
+  top: 45px;
+  height: 25px;
+  border-radius: 4px;
+  opacity: .75;
+}
+
+.overviewGridLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #eee;
+}
+
+#wholePlayhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #222;
+  z-index: 20;
+  display: none;
+  pointer-events: none;
+}
+
+#wholePlayheadDot {
+  position: absolute;
+  top: 4px;
+  left: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #222;
+}
+
+/* ---------- DARK MODE ---------- */
+
+body.dark-mode {
+  background: #18181b;
+  color: #f4f4f5;
+}
+
+body.dark-mode #topbar,
+body.dark-mode #categoryBar {
+  background: #202023;
+  border-color: #35353a;
+}
+
+body.dark-mode #logo span {
+  color: #a1a1aa;
+}
+
+body.dark-mode .small-control,
+body.dark-mode #instrumentName {
+  color: #a1a1aa;
+}
+
+body.dark-mode button {
+  background: #29292e;
+  color: #f4f4f5;
+  border-color: #414147;
+}
+
+body.dark-mode button:hover {
+  background: #333338;
+  border-color: #52525a;
+}
+
+body.dark-mode button.active {
+  background: #f4f4f5;
+  color: #18181b;
+  border-color: #f4f4f5;
+}
+
+body.dark-mode .small-control input,
+body.dark-mode .small-control select,
+body.dark-mode select {
+  background: #29292e;
+  color: #f4f4f5;
+  border-color: #414147;
+}
+
+body.dark-mode .categoryButton {
+  background: transparent;
+  color: #a1a1aa;
+}
+
+body.dark-mode .categoryButton:hover {
+  background: #2a2a2f;
+}
+
+body.dark-mode .categoryButton.active {
+  background: #34343a;
+  color: #f4f4f5;
+}
+
+body.dark-mode #instrumentStrip {
+  background: #202023;
+  border-color: #35353a;
+}
+
+body.dark-mode #gridFrame {
+  background: #1d1d20;
+}
+
+body.dark-mode .row {
+  border-bottom-color: #303036;
+}
+
+body.dark-mode .cell {
+  border-right-color: #29292e;
+}
+
+body.dark-mode .cell.beat {
+  border-right-color: #414147;
+}
+
+body.dark-mode .cell.bar {
+  border-right-color: #62626a;
+}
+
+body.dark-mode .cell.subbeat {
+  border-right-color: #37373d;
+}
+
+body.dark-mode #instrumentIndicator {
+  background: rgba(39,39,42,.94);
+  border-color: #414147;
+  color: #b4b4bd;
+}
+
+body.dark-mode #emptyState {
+  color: #777780;
+}
+
+body.dark-mode #emptyState span {
+  background: rgba(39,39,42,.9);
+}
+
+body.dark-mode #playhead,
+body.dark-mode #playheadDot,
+body.dark-mode #wholePlayhead,
+body.dark-mode #wholePlayheadDot {
+  background: #f4f4f5;
+}
+
+body.dark-mode .overlay {
+  background: rgba(10,10,12,.78);
+}
+
+body.dark-mode .panel {
+  background: #232326;
+  border-color: #414147;
+}
+
+body.dark-mode .settingRow {
+  border-color: #38383e;
+}
+
+body.dark-mode .settingDescription {
+  color: #a1a1aa;
+}
+
+body.dark-mode #wholeSong {
+  background: #18181b;
+}
+
+body.dark-mode #wholeHeader {
+  background: rgba(32,32,35,.96);
+  border-color: #35353a;
+}
+
+body.dark-mode .overviewGroup {
+  border-color: #35353a;
+}
+
+body.dark-mode .overviewLabel {
+  color: #a1a1aa;
+}
+
+body.dark-mode .overviewGridLine {
+  background: #303036;
+}
+
+body.dark-mode #wholeTimeline {
+  border-color: #414147;
+}
+
+body.dark-mode #scrollViewport {
+  scrollbar-color: #52525a transparent;
+}
+
+body.dark-mode #scrollViewport::-webkit-scrollbar-thumb {
+  background: #52525a;
+}
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width: 700px) {
+  #topbar { gap:5px; padding:7px 8px; flex-wrap:nowrap; overflow-x:auto; }
+  #logo { font-size:18px; margin-right:3px; }
+  #instrumentName { display:none; }
+  #topbar button { padding:7px 9px; }
+  .toolbarMenu > summary { padding:7px 9px; }
+
+  .categoryButton {
+    padding: 7px 13px;
+  }
+
+  #gridFrame {
+    inset: 5px;
+  }
+}
+
+/* v0.7.1 repair controls */
+.menuOverlay { position:fixed; inset:0; z-index:1000; display:none; align-items:center; justify-content:center; padding:18px; background:rgba(0,0,0,.32); }
+.menuOverlay.show { display:flex; }
+.menuPanel { width:min(460px,100%); max-height:80vh; overflow:auto; background:#fff; color:#222; border:1px solid #ddd; border-radius:12px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,.22); }
+.menuPanel h2 { margin:0 0 12px; font-size:19px; }
+.menuChoices { display:grid; grid-template-columns:repeat(auto-fit,minmax(125px,1fr)); gap:8px; }
+.menuChoices button { text-align:left; min-height:42px; }
+.menuActions { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
+body.dark-mode .menuPanel { background:#242424; color:#f2f2f2; border-color:#444; }
+body.dark-mode .menuChoices button { background:#303030; color:#f2f2f2; border-color:#555; }
+.keybindSection { margin:16px 0; padding:12px; border:1px solid #ddd; border-radius:8px; }
+.keybindSection h3 { margin:0 0 6px; }
+.keybindHint { font-size:12px; opacity:.75; margin:0 0 10px; }
+.keybindRow { display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center; padding:6px 0; border-bottom:1px solid #e7e7e7; }
+.keybindRow:last-child { border-bottom:0; }
+.keybindKey { min-width:72px; font-family:monospace; text-align:center; padding:5px 8px; border:1px solid #bbb; border-radius:5px; }
+.keybindRow button { min-width:74px; }
+body.dark-mode .keybindSection { border-color:#555; }
+body.dark-mode .keybindRow { border-color:#444; }
+body.dark-mode .keybindKey { border-color:#666; }
+@media(max-width:850px) { #volumeControl input { width:100% !important; } }
+
+
+
+/* ---------- WELCOME / FRONT DOOR ---------- */
+#welcomeScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: auto;
+  background: radial-gradient(ellipse at 50% 25%, #f2efff 0%, #faf9ff 42%, #ffffff 100%);
+  color: #242136;
+}
+#welcomeScreen[hidden] { display: none !important; }
+.welcomeCard {
+  width: min(680px, 100%);
+  padding: clamp(28px, 6vw, 58px);
+  text-align: center;
+  border: 1px solid rgba(111, 91, 180, .15);
+  border-radius: 28px;
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 24px 80px rgba(74, 55, 135, .12);
+  animation: welcomeIn .45s ease-out both;
+}
+.welcomeMark {
+  display: inline-flex;
+  width: 82px;
+  height: 82px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 17px;
+  border-radius: 24px;
+  color: #fff;
+  background: linear-gradient(145deg, #8b72ed, #6650c8);
+  box-shadow: 0 12px 28px rgba(102,80,200,.25);
+}
+.welcomeWordmark { margin: 0; font-size: clamp(36px, 8vw, 58px); letter-spacing: -2.4px; line-height: 1.05; font-weight: 750; }
+.welcomeWordmark span { color: #7964d7; }
+.welcomeTagline { margin: 17px 0 0; font-size: clamp(16px, 3vw, 20px); color: #625d75; line-height: 1.5; }
+.welcomeDescription { max-width: 430px; margin: 10px auto 28px; color: #858095; font-size: 14px; line-height: 1.65; }
+.welcomeActions { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+#welcomeStart { padding: 13px 24px; border: 0; border-radius: 12px; background: #715bd1; color: #fff; font-weight: 700; font-size: 15px; box-shadow: 0 7px 18px rgba(113,91,209,.22); }
+#welcomeStart:hover { background: #6048c3; }
+#welcomeOpen { padding: 13px 18px; border-radius: 12px; background: #fff; border-color: #e4e0f0; color: #4e4767; font-size: 15px; }
+.welcomeFoot { margin-top: 28px; font-size: 11px; color: #a29db0; letter-spacing: .8px; text-transform: uppercase; }
+@keyframes welcomeIn { from { opacity: 0; transform: translateY(10px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (max-width: 480px) { #welcomeScreen { padding: 14px; } .welcomeCard { border-radius: 22px; } .welcomeActions { flex-direction: column; } .welcomeActions button { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .welcomeCard { animation: none; } }
+body.dark-mode #welcomeScreen { background: radial-gradient(ellipse at 50% 25%, #27213d 0%, #191722 48%, #141319 100%); color: #f4f0ff; }
+body.dark-mode .welcomeCard { background: rgba(35,32,46,.9); border-color: #3c354f; box-shadow: 0 24px 80px rgba(0,0,0,.3); }
+body.dark-mode .welcomeTagline { color: #c1bad6; }
+body.dark-mode .welcomeDescription { color: #a7a0b8; }
+body.dark-mode #welcomeOpen { background: #292535; color: #eee9ff; border-color: #4a435d; }
+body.dark-mode .welcomeFoot { color: #817a92; }
+
+
+/* Soundloom Lab add-ons */
+#labMenu .toolbarDropdown { min-width: 250px; }
+.labSection { padding: 8px 10px; border-bottom: 1px solid #ddd; }
+.labSection:last-child { border-bottom: 0; }
+.labSection strong { display:block; margin-bottom:7px; font-size:12px; }
+.labSection button, .labSection select, .labSection input { margin:3px 0; }
+.labSection button { width:100%; text-align:left; }
+.labHint { font-size:11px; opacity:.75; line-height:1.4; margin:5px 0 0; }
+#velocityModeLabel { display:flex; align-items:center; gap:7px; font-size:12px; }
+#velocityValue { font-variant-numeric:tabular-nums; }
+.note.velocity-editing { outline:2px solid #6b35c8; outline-offset:-2px; box-shadow:0 0 0 2px rgba(107,53,200,.28); }
+.note.velocity-selected { outline:3px solid #f59e0b !important; outline-offset:-3px; box-shadow:0 0 0 2px rgba(245,158,11,.35) !important; }
+body.dark-mode .labSection { border-color:#444; }
+body.dark-mode .note.velocity-editing { outline-color:#bda0ff; }
+body.dark-mode .note.velocity-selected { outline-color:#ffd166 !important; }
+button,input,select,textarea,.toolbarMenu>summary,.toolbarDropdown,.menuPanel,.menuChoices button,.keybindKey { border-radius:10px; }
+button { transition:background-color .12s ease,transform .12s ease; } button:active { transform:translateY(1px); } select { padding:7px 10px; }
+.toolbarDropdown { border-radius:14px; overflow:hidden; } .toolbarDropdown button { border-radius:9px; }
+#noteEditorSidebar { position:fixed; z-index:950; top:84px; right:14px; bottom:14px; width:min(320px,calc(100vw - 28px)); display:flex; flex-direction:column; gap:12px; padding:16px; overflow:hidden; color:#242136; background:rgba(255,255,255,.97); border:1px solid #ded8ef; border-radius:18px; box-shadow:0 16px 50px rgba(35,24,60,.18); }
+#noteEditorSidebar[hidden] { display:none!important; } body.dark-mode #noteEditorSidebar { color:#f4f0ff; background:rgba(35,32,46,.98); border-color:#4a435d; }
+.noteSidebarHeader { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; } .noteSidebarHeader h2 { margin:0; font-size:19px; }
+.noteSidebarHeader p,.noteSidebarHint { margin:4px 0 0; font-size:12px; opacity:.72; line-height:1.45; } .noteSidebarControl { padding:12px; border-radius:12px; background:rgba(120,100,170,.09); }
+.noteSidebarControl label { display:flex; justify-content:space-between; gap:8px; font-size:12px; margin-bottom:10px; } .noteSidebarControl input { width:100%; }
+.noteStatsList { overflow:auto; display:flex; flex-direction:column; gap:7px; padding-right:2px; }
+.noteStatItem { display:grid; grid-template-columns:1fr auto; gap:4px 8px; padding:10px; border:1px solid #e7e1f1; border-radius:12px; background:rgba(120,100,170,.045); cursor:pointer; }
+.noteStatItem strong { font-size:13px; } .noteStatItem span { font-size:12px; opacity:.75; } .noteStatItem.selected { border-color:#8a63d2; background:rgba(138,99,210,.14); }
+body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatItem.selected { border-color:#bda0ff; }
+.keybindMenuPanel { width:min(620px,100%); } #keybindRows { max-height:58vh; overflow:auto; padding-right:4px; }
+.keybindRow { grid-template-columns:minmax(110px,1fr) auto auto; gap:10px; }
+@media(max-width:700px) { #noteEditorSidebar { top:auto; left:10px; right:10px; bottom:10px; width:auto; max-height:55vh; } }
+</style>
+</head>
+
+<body>
+
+
+<!-- WELCOME SCREEN: the front door to Soundloom. Existing autosave is restored behind this screen. -->
+<section id="welcomeScreen" aria-labelledby="welcomeTitle">
+  <div class="welcomeCard">
+    <div class="welcomeMark" aria-hidden="true">
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 28C10 28 10 17 15 17S20 35 25 35 30 12 35 12 40 28 47 28" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M5 39C10 39 10 33 15 33S20 43 25 43 30 28 35 28 40 39 47 39" stroke="currentColor" stroke-opacity=".68" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1 id="welcomeTitle" class="welcomeWordmark">Sound<span>loom</span></h1>
+    <p class="welcomeTagline">Make something that sounds like you.</p>
+    <p class="welcomeDescription">A little space to build beats, layer melodies, and see what happens. No studio experience required — just press play.</p>
+    <div class="welcomeActions">
+      <button id="welcomeStart" type="button">Start creating&nbsp; →</button>
+      <button id="welcomeOpen" type="button">Open a saved project</button>
+    </div>
+    <div class="welcomeFoot">Your ideas. Your rhythm. Your Soundloom.</div>
+  </div>
+</section>
+
+
+<!-- TOP BAR: keep everyday actions visible; tuck advanced controls into small menus -->
+<div id="topbar">
+  <div id="logo">Soundloom <span style="font-size:10px;opacity:.65">LAB COPY</span></div>
+  <button id="backToStartBtn" type="button" title="Return to the Soundloom welcome screen">← Start screen</button>
+  <button id="playBtn" class="primaryAction">▶ Play</button>
+
+  <button id="addInstrumentBtn">+ Instrument</button>
+  <button id="chooseInstrumentBtn">Instruments</button>
+  <button id="removeInstrumentBtn" title="Remove selected instrument">Remove</button>
+
+  <div id="instrumentName">Piano</div>
+
+  <label class="small-control bpmControl"><span>BPM</span>
+    <input id="bpmInput" type="number" min="30" max="300" value="100" style="width:58px">
+  </label>
+
+  <details class="toolbarMenu" id="editMenu">
+    <summary>Edit</summary>
+    <div class="toolbarDropdown">
+      <button id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button>
+      <button id="redoBtn" title="Redo (Ctrl+Y)" disabled>↷ Redo</button>
+      <div class="dropdownDivider"></div>
+      <button id="copyBtn" title="Copy this instrument's pattern">Copy pattern</button>
+      <button id="pasteBtn" title="Paste pattern at the end">Paste pattern</button>
+      <button id="duplicateBtn" title="Duplicate this instrument's pattern">Duplicate pattern</button>
+    </div>
+  </details>
+
+  <details class="toolbarMenu" id="loopMenu">
+    <summary>Loop</summary>
+    <div class="toolbarDropdown loopDropdown">
+      <label class="menuCheck"><input id="loopEnabled" type="checkbox"> Repeat section</label>
+      <label class="menuField">From measure <input id="loopStart" type="number" min="1" value="1"></label>
+      <label class="menuField">To measure <input id="loopEnd" type="number" min="1" value="4"></label>
+      <p class="dropdownHint">Repeats this range during playback.</p>
+    </div>
+  </details>
+
+  <details class="toolbarMenu" id="projectMenu">
+    <summary>Project</summary>
+    <div class="toolbarDropdown">
+      <button id="saveBtn">Save</button>
+      <button id="loadBtn">Load</button>
+      <button id="clearBtn">Clear song…</button>
+      <input id="fileInput" type="file" accept=".cmlplus,.json" hidden>
+    </div>
+  </details>
+
+  <details class="toolbarMenu" id="soundMenu">
+    <summary>Sound</summary>
+    <div class="toolbarDropdown soundDropdown">
+      <label id="volumeControl" title="Volume for the selected instrument">Instrument volume
+        <input id="instrumentVolume" type="range" min="0" max="100" value="80" style="width:112px;vertical-align:middle">
+        <span id="volumeValue">80%</span>
+      </label>
+    </div>
+  </details>
+
+  <details class="toolbarMenu" id="moreMenu">
+    <summary>More</summary>
+    <div class="toolbarDropdown">
+      <button id="settingsBtn">Settings</button>
+      <button id="keybindsBtn" type="button">Keyboard Controls</button>
+      <button id="helpBtn">Help</button>
+    </div>
+  </details>
+
+  <details class="toolbarMenu" id="labToolsMenu">
+    <summary>Lab Tools</summary>
+    <div class="toolbarDropdown">
+      <button id="patternLibraryBtn" type="button">Pattern Library</button>
+      <button id="noteEditorBtn" type="button" aria-pressed="false">Note Editor</button>
+      <details class="toolbarMenu nestedToolbarMenu" id="gridSpacingMenu">
+        <summary>Grid spacing</summary>
+        <div class="toolbarDropdown">
+          <label class="menuField" for="labGridSpacing">Step width
+            <select id="labGridSpacing" aria-label="Grid spacing">
+              <option value="20">Fine / compact</option>
+              <option value="30">Medium</option>
+              <option value="40" selected>Default</option>
+              <option value="60">Wide</option>
+            </select>
+          </label>
+          <p class="dropdownHint">Visual spacing only; note timing stays the same.</p>
+        </div>
+      </details>
+    </div>
+  </details>
+</div>
+
+<!-- CATEGORY NAVIGATION -->
+<div id="categoryBar">
+  <button class="categoryButton active" data-category="drums">Drums</button>
+  <button class="categoryButton" data-category="melody">Melody</button>
+  <button class="categoryButton" data-category="chords">Chords</button>
+</div>
+
+<!-- MAIN EDITOR -->
+<div id="workspace">
+
+  <div id="instrumentStrip" aria-hidden="true"></div>
+
+  <div id="gridArea">
+
+    <div id="gridFrame">
+
+      <div id="instrumentIndicator">Piano</div>
+
+      <div id="scrollViewport">
+        <div id="canvas">
+          <div id="emptyState">
+            <span>Click a rectangle to make a note</span>
+          </div>
+          <div id="playhead">
+            <div id="playheadDot"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- WHOLE SONG VIEW -->
+<div id="wholeSong">
+
+  <div id="wholeHeader">
+    <strong>Whole Song</strong>
+    <button id="closeWholeSongBtn">Back to Editor</button>
+  </div>
+
+  <div id="wholeScroller">
+    <div id="wholeTimeline">
+
+      <div class="overviewGroup" data-overview="drums">
+        <div class="overviewLabel">DRUMS</div>
+      </div>
+
+      <div class="overviewGroup" data-overview="melody" style="top:100px">
+        <div class="overviewLabel">MELODY</div>
+      </div>
+
+      <div class="overviewGroup" data-overview="chords" style="top:200px">
+        <div class="overviewLabel">CHORDS</div>
+      </div>
+
+      <div id="wholePlayhead">
+        <div id="wholePlayheadDot"></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- SETTINGS -->
+<div id="settingsOverlay" class="overlay">
+
+  <div class="panel">
+
+    <h2>Settings</h2>
+
+    <div class="settingRow">
+      <div>
+        <strong>View mode</strong>
+        <div class="settingDescription">
+          Switch between the category editor and the complete song overview.
+        </div>
+      </div>
+
+      <select id="viewMode">
+        <option value="category">Category View</option>
+        <option value="whole">Whole Song View</option>
+      </select>
+    </div>
+
+    <div class="settingRow">
+      <div>
+        <strong>Time Signature</strong>
+        <div class="settingDescription">
+          Sets how beats are grouped into musical measures and how the song loops.
+        </div>
+      </div>
+
+      <select id="timeSignatureSelect">
+        <option value="2/4">2/4</option>
+        <option value="3/4">3/4</option>
+        <option value="4/4" selected>4/4</option>
+        <option value="5/4">5/4</option>
+        <option value="6/8">6/8</option>
+        <option value="7/8">7/8</option>
+      </select>
+    </div>
+
+    <div class="settingRow">
+      <div>
+        <strong>Key</strong>
+        <div class="settingDescription">
+          Changes the key used for future musical features.
+        </div>
+      </div>
+
+      <select id="keySelect">
+        <option>C</option>
+        <option>C#</option>
+        <option>D</option>
+        <option>D#</option>
+        <option>E</option>
+        <option>F</option>
+        <option>F#</option>
+        <option>G</option>
+        <option>G#</option>
+        <option>A</option>
+        <option>A#</option>
+        <option>B</option>
+      </select>
+    </div>
+
+    <div class="settingRow">
+      <div>
+        <strong>Scale</strong>
+        <div class="settingDescription">
+          Controls the musical scale used by scale-aware features.
+        </div>
+      </div>
+
+      <select id="scaleSelect">
+        <option value="chromatic">Chromatic</option>
+        <option value="major">Major</option>
+        <option value="minor">Minor</option>
+      </select>
+    </div>
+
+    <div class="settingRow">
+      <div>
+        <strong>Dark Mode</strong>
+        <div class="settingDescription">
+          Switch between the classic light interface and a darker Soundloom theme.
+        </div>
+      </div>
+
+      <input id="darkModeToggle" type="checkbox">
+    </div>
+
+    <div class="settingRow">
+      <div>
+        <strong>Auto-save</strong>
+        <div class="settingDescription">
+          Automatically keeps a local copy of your current project.
+        </div>
+      </div>
+
+      <input id="autosaveToggle" type="checkbox" checked>
+    </div>
+
+    <div class="settingRow">
+      <div>
+        <strong>Instrument switching</strong>
+        <div class="settingDescription">
+          Use the Instruments button to choose an existing instrument. Use + Instrument to add one.
+        </div>
+      </div>
+    </div>
+
+    <div class="settingRow">
+      <div>
+        <strong>Whole Song View</strong>
+        <div class="settingDescription">
+          Shows drums, melody, and chords together on one timeline.
+        </div>
+      </div>
+
+      <button id="openWholeFromSettings">Open</button>
+    </div>
+
+    <div class="panelActions">
+      <button id="closeSettingsBtn">Done</button>
+    </div>
+
+  </div>
+
+</div>
+
+
+<div id="instrumentMenuOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="instrumentMenuTitle">
+  <div class="menuPanel"><h2 id="instrumentMenuTitle">Choose an instrument</h2><p id="instrumentMenuHint">Pick an instrument to add.</p><div id="instrumentMenuChoices" class="menuChoices"></div><div class="menuActions"><button id="cancelInstrumentMenu">Cancel</button></div></div>
+</div>
+<div id="clearConfirmOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="clearConfirmTitle">
+  <div class="menuPanel"><h2 id="clearConfirmTitle">Clear the whole song?</h2><p>This removes every note from every instrument. Your instruments will stay.</p><div class="menuActions"><button id="cancelClearBtn" class="active">No, keep it</button><button id="confirmClearBtn">Yes, clear song</button></div></div>
+</div>
+<div id="helpOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="menuPanel"><h2 id="helpTitle">Soundloom Help</h2>
+<p><strong>Make notes:</strong> Click empty grid cells to add notes and existing notes to remove them.</p><p><strong>Instruments:</strong> Use + Instrument to add one and Instruments to switch sounds. Open Edit for undo, redo, copy, paste, and duplicate.</p><p><strong>Pattern Library:</strong> Choose a drum beat, bass pulse, arpeggio, or chord starter. It adds notes to the matching category and keeps existing notes.</p><p><strong>Note Editor:</strong> Opens a right sidebar listing each note's pitch, velocity, measure, and step. Select a note to change its velocity. The grid is locked against adding/removing notes until Note Editor is closed.</p><p><strong>Grid spacing:</strong> Choose Fine, Medium, Default, or Wide. This changes visual spacing, not note timing.</p><p><strong>Keyboard Controls:</strong> Open More → Keyboard Controls to customize shortcuts for menus and actions.</p><p><strong>Play and save:</strong> Use Play, BPM, Save, and Load. Settings contains time signature, key, scale, dark mode, auto-save, and Whole Song View.</p><div class="menuActions"><button id="closeHelpBtn" class="active">Got it</button></div></div></div>
+<div id="keybindsOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="keybindsTitle"><div class="menuPanel keybindMenuPanel"><h2 id="keybindsTitle">Keyboard Controls</h2><p class="keybindHint">Choose Change, then press a key. Shortcuts are saved on this computer.</p><div id="keybindRows"></div><div class="menuActions"><button id="resetKeybindsBtn" type="button">Reset defaults</button><button id="closeKeybindsBtn" class="active" type="button">Done</button></div></div></div>
+<div id="patternLibraryOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="patternLibraryTitle"><div class="menuPanel"><h2 id="patternLibraryTitle">Pattern Library</h2><p>Choose a starter pattern. Existing notes are kept.</p><div class="labSection"><strong>Drums</strong><div class="menuChoices"><button data-lab-pattern="fourfloor" type="button">Four-on-the-floor</button><button data-lab-pattern="breakbeat" type="button">Breakbeat starter</button></div></div><div class="labSection"><strong>Melody</strong><div class="menuChoices"><button data-lab-pattern="bass" type="button">Bass pulse</button><button data-lab-pattern="arpeggio" type="button">Arpeggio starter</button></div></div><div class="labSection"><strong>Chords</strong><div class="menuChoices"><button data-lab-pattern="chords" type="button">Three-chord loop</button></div></div><div class="menuActions"><button id="closePatternLibraryBtn" class="active" type="button">Done</button></div></div></div>
+<aside id="noteEditorSidebar" aria-label="Note statistics" hidden><div class="noteSidebarHeader"><div><h2>Note Editor</h2><p id="noteSidebarInstrument">Current instrument</p></div><button id="closeNoteEditorBtn" type="button" aria-label="Close Note Editor">×</button></div><div class="noteSidebarControl"><label for="labVelocity">Selected note velocity <strong id="velocityValue">75%</strong></label><input id="labVelocity" type="range" min="10" max="100" value="75"></div><p class="noteSidebarHint">Grid editing is locked while this panel is open.</p><div id="noteStatsList" class="noteStatsList"></div></aside>
+
+<script>
+/* =========================================================
+   SOUNDLOOM v0.8.0
+   ========================================================= */
+
+const VERSION = "0.8.0-lab";
+const AUTOSAVE_KEY = "cmlplus_autosave_064";
+const DARK_MODE_KEY = "soundloom_dark_mode";
+
+const ROW_HEIGHT = 22;
+let CELL_WIDTH = 40;
+const TOTAL_ROWS = 60;
+const MIN_STEPS = 16;
+
+const TIMELINE_CHUNK_STEPS = 64;
+
+const COLORS = {
+  drums: "#8a78d8",
+  melody: "#4d9fdb",
+  chords: "#e59b4c"
+};
+
+const INSTRUMENTS = [
+  { name: "Kick", category: "drums", type: "kick" },
+  { name: "Snare", category: "drums", type: "snare" },
+  { name: "Hi-Hat", category: "drums", type: "hihat" },
+  { name: "Open Hi-Hat", category: "drums", type: "openhat" },
+  { name: "Clap", category: "drums", type: "clap" },
+  { name: "Tom", category: "drums", type: "tom" },
+
+  { name: "Piano", category: "melody", type: "piano" },
+  { name: "Synth", category: "melody", type: "synth" },
+  { name: "Soft Synth", category: "melody", type: "soft" },
+  { name: "Organ", category: "melody", type: "organ" },
+  { name: "Flute", category: "melody", type: "flute" },
+  { name: "Strings", category: "melody", type: "strings" },
+  { name: "Bass", category: "melody", type: "bass" },
+  { name: "Pluck", category: "melody", type: "pluck" },
+
+  { name: "Piano Chords", category: "chords", type: "chord-piano" },
+  { name: "Synth Chords", category: "chords", type: "chord-synth" },
+  { name: "Guitar Chords", category: "chords", type: "chord-guitar" }
+];
+
+const state = {
+  bpm: 100,
+  key: "C",
+  scale: "chromatic",
+  autosave: true,
+  darkMode: false,
+
+  timeSignature: "4/4",
+
+  category: "drums",
+  currentInstrument: 0,
+
+  playing: false,
+  playbackStep: 0,
+  playbackStartTime: 0,
+  animationFrame: null,
+
+  audioContext: null,
+
+  instruments: []
+};
+
+
+/* =========================================================
+   DARK MODE
+   ========================================================= */
+
+function applyDarkMode(enabled) {
+
+  state.darkMode = !!enabled;
+
+  document.body.classList.toggle(
+    "dark-mode",
+    state.darkMode
+  );
+
+  const toggle =
+    document.getElementById("darkModeToggle");
+
+  if (toggle) {
+    toggle.checked = state.darkMode;
+  }
+
+  try {
+    localStorage.setItem(
+      DARK_MODE_KEY,
+      state.darkMode ? "true" : "false"
+    );
+  } catch (error) {
+    console.warn(
+      "Dark mode preference could not be saved."
+    );
+  }
+}
+
+
+function loadDarkModePreference() {
+
+  try {
+
+    const saved =
+      localStorage.getItem(DARK_MODE_KEY);
+
+    if (saved === "true") {
+      applyDarkMode(true);
+    } else if (saved === "false") {
+      applyDarkMode(false);
+    }
+
+  } catch (error) {
+    console.warn(
+      "Dark mode preference could not be loaded."
+    );
+  }
+}
+
+
+document
+  .getElementById("darkModeToggle")
+  .addEventListener(
+    "change",
+    event => {
+      applyDarkMode(event.target.checked);
+    }
+  );
+
+
+/* =========================================================
+   TIME SIGNATURE
+   ========================================================= */
+
+function getTimeSignatureInfo() {
+
+  const signatures = {
+    "2/4": { measureSteps: 8, beatSteps: 4 },
+    "3/4": { measureSteps: 12, beatSteps: 4 },
+    "4/4": { measureSteps: 16, beatSteps: 4 },
+    "5/4": { measureSteps: 20, beatSteps: 4 },
+    "6/8": { measureSteps: 12, beatSteps: 6 },
+    "7/8": { measureSteps: 14, beatSteps: 4 }
+  };
+
+  return signatures[state.timeSignature] || signatures["4/4"];
+}
+
+
+function getMeasureSteps() {
+  return getTimeSignatureInfo().measureSteps;
+}
+
+
+function getBeatSteps() {
+  return getTimeSignatureInfo().beatSteps;
+}
+
+
+/* =========================================================
+   AUDIO
+   ========================================================= */
+
+function getAudioContext() {
+  if (!state.audioContext) {
+    state.audioContext =
+      new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  if (state.audioContext.state === "suspended") {
+    state.audioContext.resume();
+  }
+
+  return state.audioContext;
+}
+
+function midiToFrequency(midi) {
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+function playTone(row, instrument, duration = .18, velocity = .55) {
+
+  const ctx = getAudioContext();
+
+  const baseMidi = 83 - row;
+  const freq = midiToFrequency(baseMidi);
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  let wave = "sine";
+
+  switch (instrument.type) {
+    case "piano":
+    case "chord-piano":
+      wave = "triangle";
+      break;
+
+    case "synth":
+    case "chord-synth":
+      wave = "sawtooth";
+      break;
+
+    case "soft":
+      wave = "sine";
+      break;
+
+    case "organ":
+      wave = "square";
+      break;
+
+    case "flute":
+      wave = "sine";
+      break;
+
+    case "strings":
+      wave = "sawtooth";
+      break;
+
+    case "bass":
+      wave = "triangle";
+      break;
+
+    case "pluck":
+    case "chord-guitar":
+      wave = "triangle";
+      break;
+  }
+
+  osc.type = wave;
+  osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+  if (instrument.type === "bass") {
+    osc.frequency.setValueAtTime(freq / 2, ctx.currentTime);
+  }
+
+  gain.gain.setValueAtTime(.0001, ctx.currentTime);
+
+  gain.gain.exponentialRampToValueAtTime(
+    Math.max(.001, velocity * (Number.isFinite(instrument.volume) ? instrument.volume : 0.8)),
+    ctx.currentTime + .008
+  );
+
+  gain.gain.exponentialRampToValueAtTime(
+    .0001,
+    ctx.currentTime + duration
+  );
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start();
+  osc.stop(ctx.currentTime + duration + .03);
+}
+
+
+function playDrum(type, volume = 0.8) {
+
+  const ctx = getAudioContext();
+  const now = ctx.currentTime;
+
+  const gain = ctx.createGain();
+  gain.connect(ctx.destination);
+
+  if (type === "kick") {
+
+    const osc = ctx.createOscillator();
+
+    osc.type = "sine";
+
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(45, now + .16);
+
+    gain.gain.setValueAtTime(.8 * volume, now);
+    gain.gain.exponentialRampToValueAtTime(.001, now + .2);
+
+    osc.connect(gain);
+
+    osc.start(now);
+    osc.stop(now + .22);
+
+  } else if (type === "snare" || type === "clap") {
+
+    const bufferSize = ctx.sampleRate * .18;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = "highpass";
+    filter.frequency.value =
+      type === "clap" ? 900 : 1500;
+
+    gain.gain.setValueAtTime(
+      (type === "clap" ? .45 : .55) * volume,
+      now
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+      .001,
+      now + .17
+    );
+
+    noise.connect(filter);
+    filter.connect(gain);
+
+    noise.start(now);
+    noise.stop(now + .18);
+
+  } else if (
+    type === "hihat" ||
+    type === "openhat"
+  ) {
+
+    const bufferSize =
+      ctx.sampleRate *
+      (type === "openhat" ? .45 : .12);
+
+    const buffer =
+      ctx.createBuffer(
+        1,
+        bufferSize,
+        ctx.sampleRate
+      );
+
+    const data =
+      buffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise =
+      ctx.createBufferSource();
+
+    noise.buffer = buffer;
+
+    const filter =
+      ctx.createBiquadFilter();
+
+    filter.type = "highpass";
+    filter.frequency.value = 5000;
+
+    gain.gain.setValueAtTime(.22 * volume, now);
+
+    gain.gain.exponentialRampToValueAtTime(
+      .001,
+      now + (type === "openhat" ? .4 : .1)
+    );
+
+    noise.connect(filter);
+    filter.connect(gain);
+
+    noise.start(now);
+    noise.stop(
+      now +
+      (type === "openhat" ? .45 : .12)
+    );
+
+  } else if (type === "tom") {
+
+    const osc = ctx.createOscillator();
+
+    osc.type = "sine";
+
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(
+      75,
+      now + .18
+    );
+
+    gain.gain.setValueAtTime(.5 * volume, now);
+
+    gain.gain.exponentialRampToValueAtTime(
+      .001,
+      now + .2
+    );
+
+    osc.connect(gain);
+
+    osc.start(now);
+    osc.stop(now + .22);
+  }
+}
+
+
+function playInstrumentNote(instrument, row) {
+
+  if (Number.isFinite(instrument.volume) && instrument.volume <= 0) return;
+
+  if (
+    instrument.type === "kick" ||
+    instrument.type === "snare" ||
+    instrument.type === "hihat" ||
+    instrument.type === "openhat" ||
+    instrument.type === "clap" ||
+    instrument.type === "tom"
+  ) {
+
+    playDrum(instrument.type, instrument.volume ?? 0.8);
+    return;
+  }
+
+  if (instrument.type.startsWith("chord-")) {
+
+    const intervals = [0, 4, 7];
+
+    intervals.forEach(interval => {
+
+      const chordRow = row - interval;
+
+      if (
+        chordRow >= 0 &&
+        chordRow < TOTAL_ROWS
+      ) {
+
+        playTone(
+          chordRow,
+          instrument,
+          .35,
+          .32
+        );
+      }
+    });
+
+    return;
+  }
+
+  playTone(row, instrument);
+}
+
+
+/* =========================================================
+   DATA
+   ========================================================= */
+
+function createInstrument(definition) {
+
+  return {
+    id: crypto.randomUUID
+      ? crypto.randomUUID()
+      : String(Date.now() + Math.random()),
+
+    name: definition.name,
+    category: definition.category,
+    type: definition.type,
+    volume: 0.8,
+
+    notes: {}
+  };
+}
+
+
+function initializeInstruments() {
+
+  state.instruments = [];
+
+  const firstDrum =
+    INSTRUMENTS.find(
+      i => i.category === "drums"
+    );
+
+  const firstMelody =
+    INSTRUMENTS.find(
+      i => i.category === "melody"
+    );
+
+  const firstChord =
+    INSTRUMENTS.find(
+      i => i.category === "chords"
+    );
+
+  state.instruments.push(
+    createInstrument(firstDrum)
+  );
+
+  state.instruments.push(
+    createInstrument(firstMelody)
+  );
+
+  state.instruments.push(
+    createInstrument(firstChord)
+  );
+
+  state.category = "drums";
+  state.currentInstrument = 0;
+}
+
+
+function getCategoryInstruments(category) {
+
+  return state.instruments.filter(
+    instrument =>
+      instrument.category === category
+  );
+}
+
+
+function getCategoryInstrumentIndices(category) {
+
+  const result = [];
+
+  state.instruments.forEach(
+    (instrument, index) => {
+
+      if (
+        instrument.category === category
+      ) {
+        result.push(index);
+      }
+
+    }
+  );
+
+  return result;
+}
+
+
+function ensureCategoryInstrument(category) {
+
+  const indices =
+    getCategoryInstrumentIndices(category);
+
+  if (indices.length > 0) {
+
+    if (
+      !indices.includes(
+        state.currentInstrument
+      )
+    ) {
+      state.currentInstrument =
+        indices[0];
+    }
+
+    return;
+  }
+
+  const definition =
+    INSTRUMENTS.find(
+      instrument =>
+        instrument.category === category
+    );
+
+  if (definition) {
+
+    state.instruments.push(
+      createInstrument(definition)
+    );
+
+    state.currentInstrument =
+      state.instruments.length - 1;
+  }
+}
+
+
+/* =========================================================
+   GRID
+   ========================================================= */
+
+function getCurrentInstrument() {
+  return state.instruments[state.currentInstrument];
+}
+
+
+function getSongLength() {
+
+  let highest = -1;
+
+  state.instruments.forEach(
+    instrument => {
+
+      Object.keys(instrument.notes)
+        .forEach(step => {
+
+          const numericStep =
+            Number(step);
+
+          if (
+            instrument.notes[step] &&
+            instrument.notes[step].length > 0 &&
+            numericStep > highest
+          ) {
+            highest = numericStep;
+          }
+
+        });
+
+    }
+  );
+
+  if (highest < 0) {
+    return MIN_STEPS;
+  }
+
+  return highest + 1;
+}
+
+
+function renderGrid() {
+
+  const canvas =
+    document.getElementById("canvas");
+
+  const instrument =
+    getCurrentInstrument();
+
+  if (!instrument) return;
+
+  canvas.innerHTML = "";
+
+  const emptyState =
+    document.createElement("div");
+
+  emptyState.id = "emptyState";
+
+  const emptyText =
+    document.createElement("span");
+
+  emptyText.textContent =
+    "Click a rectangle to make a note";
+
+  emptyState.appendChild(emptyText);
+  canvas.appendChild(emptyState);
+
+  const songLength =
+    getSongLength();
+
+  const renderLength =
+    Math.max(
+      TIMELINE_CHUNK_STEPS,
+      (Math.floor(
+        songLength /
+        TIMELINE_CHUNK_STEPS
+      ) + 1) *
+      TIMELINE_CHUNK_STEPS
+    );
+
+  canvas.style.width =
+    renderLength *
+    CELL_WIDTH +
+    "px";
+
+  canvas.style.height =
+    TOTAL_ROWS *
+    ROW_HEIGHT +
+    "px";
+
+  for (
+    let row = 0;
+    row < TOTAL_ROWS;
+    row++
+  ) {
+
+    const rowElement =
+      document.createElement("div");
+
+    rowElement.className = "row";
+
+    rowElement.style.top =
+      row *
+      ROW_HEIGHT +
+      "px";
+
+    canvas.appendChild(rowElement);
+  }
+
+  const measureSteps =
+    getMeasureSteps();
+
+  const beatSteps =
+    getBeatSteps();
+
+  for (
+    let step = 0;
+    step < renderLength;
+    step++
+  ) {
+
+    const cell =
+      document.createElement("div");
+
+    cell.className = "cell";
+
+    if (
+      (step + 1) %
+      beatSteps === 0
+    ) {
+      cell.classList.add("beat");
+    }
+
+    if (
+      (step + 1) %
+      measureSteps === 0
+    ) {
+      cell.classList.add("bar");
+    }
+
+    if (
+      state.timeSignature === "6/8" &&
+      (step + 1) % 3 === 0 &&
+      (step + 1) % beatSteps !== 0
+    ) {
+      cell.classList.add("subbeat");
+    }
+
+    cell.style.left =
+      step *
+      CELL_WIDTH +
+      "px";
+
+    cell.style.width =
+      CELL_WIDTH +
+      "px";
+
+    cell.style.zIndex = "2";
+
+    canvas.appendChild(cell);
+  }
+
+  Object.keys(instrument.notes)
+    .forEach(stepString => {
+
+      const step =
+        Number(stepString);
+
+      instrument.notes[step]
+        .forEach(row => {
+
+          createNoteElement(
+            canvas,
+            step,
+            row,
+            instrument.category
+          );
+
+        });
+
+    });
+
+  const playhead =
+    document.createElement("div");
+
+  playhead.id = "playhead";
+
+  const dot =
+    document.createElement("div");
+
+  dot.id = "playheadDot";
+
+  playhead.appendChild(dot);
+  canvas.appendChild(playhead);
+
+  updatePlayhead();
+  updateEmptyState();
+  if (typeof labRenderVelocityAppearance === "function") labRenderVelocityAppearance();
+}
+
+
+function createNoteElement(
+  canvas,
+  step,
+  row,
+  category
+) {
+
+  const note =
+    document.createElement("div");
+
+  note.className = "note";
+
+  note.style.left =
+    step *
+    CELL_WIDTH +
+    2 +
+    "px";
+
+  note.style.top =
+    row *
+    ROW_HEIGHT +
+    2 +
+    "px";
+
+  note.style.width =
+    CELL_WIDTH -
+    4 +
+    "px";
+
+  note.style.background =
+    COLORS[category];
+
+  canvas.appendChild(note);
+}
+
+
+function getCellFromPointer(event) {
+
+  const viewport =
+    document.getElementById(
+      "scrollViewport"
+    );
+
+  const rect =
+    viewport.getBoundingClientRect();
+
+  const x =
+    event.clientX -
+    rect.left +
+    viewport.scrollLeft;
+
+  const y =
+    event.clientY -
+    rect.top +
+    viewport.scrollTop;
+
+  return {
+    step: Math.floor(
+      x / CELL_WIDTH
+    ),
+
+    row: Math.floor(
+      y / ROW_HEIGHT
+    )
+  };
+}
+
+
+function hasNote(
+  instrument,
+  step,
+  row
+) {
+
+  return !!(
+    instrument.notes[step] &&
+    instrument.notes[step].includes(row)
+  );
+}
+
+
+function addNote(
+  instrument,
+  step,
+  row
+) {
+
+  if (
+    step < 0 ||
+    row < 0 ||
+    row >= TOTAL_ROWS
+  ) {
+    return;
+  }
+
+  if (!instrument.notes[step]) {
+    instrument.notes[step] = [];
+  }
+
+  if (
+    !instrument.notes[step].includes(row)
+  ) {
+    instrument.notes[step].push(row);
+  }
+}
+
+
+function removeNote(
+  instrument,
+  step,
+  row
+) {
+
+  if (!instrument.notes[step]) {
+    return;
+  }
+
+  instrument.notes[step] =
+    instrument.notes[step].filter(
+      existingRow =>
+        existingRow !== row
+    );
+
+  if (
+    instrument.notes[step].length === 0
+  ) {
+    delete instrument.notes[step];
+  }
+}
+
+
+function updateEmptyState() {
+
+  const instrument =
+    getCurrentInstrument();
+
+  const empty =
+    document.getElementById(
+      "emptyState"
+    );
+
+  if (!instrument || !empty) {
+    return;
+  }
+
+  const hasAny =
+    Object.keys(
+      instrument.notes
+    ).some(
+      step =>
+        instrument.notes[step].length > 0
+    );
+
+  empty.style.display =
+    hasAny ? "none" : "flex";
+}
+
+
+/* =========================================================
+   EDIT HISTORY, PATTERN CLIPBOARD, AND LOOPING
+   ========================================================= */
+const undoStack = [];
+const redoStack = [];
+const HISTORY_LIMIT = 100;
+let patternClipboard = null;
+
+function notesSnapshot() {
+  return state.instruments.map(instrument => ({
+    id: instrument.id,
+    notes: JSON.parse(JSON.stringify(instrument.notes || {}))
+  }));
+}
+function pushUndoSnapshot() {
+  undoStack.push(notesSnapshot());
+  if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
+  redoStack.length = 0;
+  updateHistoryButtons();
+}
+function restoreNotesSnapshot(snapshot) {
+  snapshot.forEach(saved => {
+    const instrument = state.instruments.find(item => item.id === saved.id);
+    if (instrument) instrument.notes = JSON.parse(JSON.stringify(saved.notes));
+  });
+  renderCurrentInstrument();
+  buildWholeSongView();
+  autoSave();
+}
+function undoEdit() {
+  if (!undoStack.length) return;
+  redoStack.push(notesSnapshot());
+  restoreNotesSnapshot(undoStack.pop());
+  updateHistoryButtons();
+}
+function redoEdit() {
+  if (!redoStack.length) return;
+  undoStack.push(notesSnapshot());
+  restoreNotesSnapshot(redoStack.pop());
+  updateHistoryButtons();
+}
+function updateHistoryButtons() {
+  const undo = document.getElementById('undoBtn');
+  const redo = document.getElementById('redoBtn');
+  if (undo) undo.disabled = undoStack.length === 0;
+  if (redo) redo.disabled = redoStack.length === 0;
+}
+function getPatternSpan(notes) {
+  const steps = Object.keys(notes || {}).map(Number).filter(Number.isFinite);
+  return steps.length ? Math.max(...steps) - Math.min(...steps) + 1 : getMeasureSteps();
+}
+function copyPattern() {
+  const instrument = getCurrentInstrument();
+  if (!instrument) return;
+  const entries = Object.entries(instrument.notes || {}).map(([step, rows]) => [Number(step), [...rows]]);
+  if (!entries.length) { alert('There are no notes in this instrument to copy yet.'); return; }
+  const minStep = Math.min(...entries.map(entry => entry[0]));
+  patternClipboard = {
+    category: instrument.category,
+    name: instrument.name,
+    span: getPatternSpan(instrument.notes),
+    notes: entries.map(([step, rows]) => [step - minStep, rows])
+  };
+  document.getElementById('pasteBtn').disabled = false;
+}
+function pastePattern(atEnd = true) {
+  const instrument = getCurrentInstrument();
+  if (!instrument || !patternClipboard) { alert('Copy a pattern first.'); return; }
+  pushUndoSnapshot();
+  const existingSteps = Object.keys(instrument.notes || {}).map(Number).filter(Number.isFinite);
+  const targetStart = atEnd && existingSteps.length ? Math.max(...existingSteps) + 1 : 0;
+  patternClipboard.notes.forEach(([offset, rows]) => {
+    rows.forEach(row => addNote(instrument, targetStart + offset, row));
+  });
+  renderCurrentInstrument(); buildWholeSongView(); autoSave(); updateHistoryButtons();
+}
+function duplicatePattern() {
+  const instrument = getCurrentInstrument();
+  if (!instrument) return;
+  if (!Object.keys(instrument.notes || {}).length) { alert('Add some notes to this instrument before duplicating its pattern.'); return; }
+  const oldClipboard = patternClipboard;
+  const entries = Object.entries(instrument.notes).map(([step, rows]) => [Number(step), [...rows]]);
+  const minStep = Math.min(...entries.map(entry => entry[0]));
+  patternClipboard = { category: instrument.category, name: instrument.name, span: getPatternSpan(instrument.notes), notes: entries.map(([step, rows]) => [step - minStep, rows]) };
+  pastePattern(true);
+  patternClipboard = patternClipboard || oldClipboard;
+}
+function loopBounds() {
+  const measureSteps = Math.max(1, getMeasureSteps());
+  const startMeasure = Math.max(1, Number(document.getElementById('loopStart').value) || 1);
+  const endMeasure = Math.max(startMeasure, Number(document.getElementById('loopEnd').value) || startMeasure);
+  return { start: (startMeasure - 1) * measureSteps, end: endMeasure * measureSteps };
+}
+function syncLoopInputs() {
+  const start = document.getElementById('loopStart');
+  const end = document.getElementById('loopEnd');
+  start.max = end.value;
+  end.min = start.value;
+  if (Number(end.value) < Number(start.value)) end.value = start.value;
+}
+document.getElementById('undoBtn').addEventListener('click', undoEdit);
+document.getElementById('redoBtn').addEventListener('click', redoEdit);
+document.getElementById('copyBtn').addEventListener('click', copyPattern);
+document.getElementById('pasteBtn').addEventListener('click', () => pastePattern(true));
+document.getElementById('duplicateBtn').addEventListener('click', duplicatePattern);
+document.getElementById('loopStart').addEventListener('change', syncLoopInputs);
+document.getElementById('loopEnd').addEventListener('change', syncLoopInputs);
+document.getElementById('pasteBtn').disabled = true;
+
+/* =========================================================
+   MOUSE / POINTER EDITING
+   ========================================================= */
+
+let pointerEditing = false;
+let editMode = null;
+let lastEditKey = null;
+
+
+document.getElementById("canvas")
+  .addEventListener(
+    "pointerdown",
+    event => {
+
+      if (event.button !== 0) return;
+
+      event.preventDefault();
+
+      const instrument =
+        getCurrentInstrument();
+
+      const { step, row } =
+        getCellFromPointer(event);
+
+      if (
+        step < 0 ||
+        row < 0 ||
+        row >= TOTAL_ROWS
+      ) {
+        return;
+      }
+
+      pointerEditing = true;
+      pushUndoSnapshot();
+
+      const key =
+        step + ":" + row;
+
+      if (
+        hasNote(
+          instrument,
+          step,
+          row
+        )
+      ) {
+
+        editMode = "erase";
+
+        playInstrumentNote(
+          instrument,
+          row
+        );
+
+        removeNote(
+          instrument,
+          step,
+          row
+        );
+
+      } else {
+
+        editMode = "paint";
+
+        addNote(
+          instrument,
+          step,
+          row
+        );
+
+        playInstrumentNote(
+          instrument,
+          row
+        );
+      }
+
+      lastEditKey = key;
+
+      renderGrid();
+      autoSave();
+    }
+  );
+
+
+document.getElementById("canvas")
+  .addEventListener(
+    "pointermove",
+    event => {
+
+      if (!pointerEditing) return;
+
+      event.preventDefault();
+
+      const instrument =
+        getCurrentInstrument();
+
+      const { step, row } =
+        getCellFromPointer(event);
+
+      if (
+        step < 0 ||
+        row < 0 ||
+        row >= TOTAL_ROWS
+      ) {
+        return;
+      }
+
+      const key =
+        step + ":" + row;
+
+      if (key === lastEditKey) {
+        return;
+      }
+
+      lastEditKey = key;
+
+      if (editMode === "paint") {
+
+        if (
+          !hasNote(
+            instrument,
+            step,
+            row
+          )
+        ) {
+
+          addNote(
+            instrument,
+            step,
+            row
+          );
+
+          playInstrumentNote(
+            instrument,
+            row
+          );
+        }
+
+      } else if (
+        editMode === "erase"
+      ) {
+
+        removeNote(
+          instrument,
+          step,
+          row
+        );
+      }
+
+      renderGrid();
+      autoSave();
+    }
+  );
+
+
+window.addEventListener(
+  "pointerup",
+  () => {
+
+    pointerEditing = false;
+    editMode = null;
+    lastEditKey = null;
+  }
+);
+
+
+document.getElementById("canvas")
+  .addEventListener(
+    "contextmenu",
+    event => {
+
+      event.preventDefault();
+
+      const instrument =
+        getCurrentInstrument();
+
+      const { step, row } =
+        getCellFromPointer(event);
+
+      if (hasNote(instrument, step, row)) pushUndoSnapshot();
+      removeNote(
+        instrument,
+        step,
+        row
+      );
+
+      renderGrid();
+      autoSave();
+    }
+  );
+
+
+/* =========================================================
+   CATEGORY SWITCHING
+   ========================================================= */
+
+function setCategory(category) {
+
+  state.category = category;
+
+  ensureCategoryInstrument(
+    category
+  );
+
+  document
+    .querySelectorAll(".categoryButton")
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.category ===
+        category
+      );
+
+    });
+
+  renderCurrentInstrument();
+}
+
+
+document
+  .querySelectorAll(".categoryButton")
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+        setCategory(
+          button.dataset.category
+        );
+      }
+    );
+
+  });
+
+
+/* =========================================================
+   INSTRUMENT SWITCHING
+   ========================================================= */
+
+function switchInstrument(direction) {
+
+  const indices =
+    getCategoryInstrumentIndices(
+      state.category
+    );
+
+  if (indices.length === 0) {
+    return;
+  }
+
+  let position =
+    indices.indexOf(
+      state.currentInstrument
+    );
+
+  if (position < 0) {
+    position = 0;
+  }
+
+  position += direction;
+
+  if (position < 0) {
+    position =
+      indices.length - 1;
+  }
+
+  if (
+    position >= indices.length
+  ) {
+    position = 0;
+  }
+
+  state.currentInstrument =
+    indices[position];
+
+  renderCurrentInstrument();
+}
+
+
+function renderCurrentInstrument() {
+
+  const instrument =
+    getCurrentInstrument();
+
+  if (!instrument) return;
+
+  document.getElementById(
+    "instrumentName"
+  ).textContent =
+    instrument.name;
+
+  document.getElementById(
+    "instrumentIndicator"
+  ).textContent =
+    instrument.name;
+
+  const frame =
+    document.getElementById(
+      "gridFrame"
+    );
+
+  frame.style.borderColor =
+    COLORS[instrument.category];
+
+  frame.classList.remove(
+    "flash"
+  );
+
+
+  frame.classList.add(
+    "flash"
+  );
+
+  const indicator =
+    document.getElementById(
+      "instrumentIndicator"
+    );
+
+  indicator.classList.remove(
+    "switching"
+  );
+
+
+  indicator.classList.add(
+    "switching"
+  );
+
+  renderGrid();
+  if (typeof syncInstrumentVolume === "function") syncInstrumentVolume();
+}
+
+
+/* Instrument selection is handled by the explicit menu buttons. */
+
+
+/* =========================================================
+   ADD / REMOVE INSTRUMENT
+   ========================================================= */
+
+document.getElementById("addInstrumentBtn").addEventListener("click", () => openInstrumentMenu("add"));
+
+
+document
+  .getElementById(
+    "removeInstrumentBtn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      const indices =
+        getCategoryInstrumentIndices(
+          state.category
+        );
+
+      if (indices.length <= 1) {
+        return;
+      }
+
+      const actualIndex =
+        state.currentInstrument;
+
+      state.instruments.splice(
+        actualIndex,
+        1
+      );
+
+      const remaining =
+        getCategoryInstrumentIndices(
+          state.category
+        );
+
+      if (remaining.length > 0) {
+
+        state.currentInstrument =
+          remaining[0];
+
+      } else {
+
+        ensureCategoryInstrument(
+          state.category
+        );
+      }
+
+      renderCurrentInstrument();
+      autoSave();
+    }
+  );
+
+
+/* =========================================================
+   PLAYBACK
+   ========================================================= */
+
+function stepDuration() {
+  return 60 / state.bpm / 4;
+}
+
+
+
+/* =========================================================
+   SOUNDLOOM LAB: VELOCITY + STARTER PATTERNS + GRID SPACING
+   ========================================================= */
+const labVelocities = Object.create(null);
+let labDefaultVelocity = 0.75;
+let labSelectedVelocityNote = null;
+let noteEditorActive = false;
+function labVelocityKey(instrument,step,row){return instrument.id+":"+step+":"+row;}
+function labGetVelocity(instrument,step,row){const key=labVelocityKey(instrument,step,row);return Object.prototype.hasOwnProperty.call(labVelocities,key)?labVelocities[key]:0.75;}
+function labSetVelocity(instrument,step,row,value){labVelocities[labVelocityKey(instrument,step,row)]=Math.max(.1,Math.min(1,value));}
+function labPitchName(row){const names=["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];const midi=83-row;return names[((midi%12)+12)%12]+(Math.floor(midi/12)-1);}
+function labMeasureAndStep(step){const n=Math.max(1,getMeasureSteps());return {measure:Math.floor(step/n)+1,stepInMeasure:step%n+1};}
+function labRenderNoteStats(){const list=document.getElementById("noteStatsList"),instrument=getCurrentInstrument(),subtitle=document.getElementById("noteSidebarInstrument");if(!list||!instrument)return;subtitle.textContent=instrument.name||instrument.type||"Current instrument";const entries=[];Object.keys(instrument.notes||{}).map(Number).sort((x,y)=>x-y).forEach(step=>(instrument.notes[step]||[]).slice().sort((x,y)=>x-y).forEach(row=>{const p=labMeasureAndStep(step);entries.push({step,row,velocity:labGetVelocity(instrument,step,row),pitch:labPitchName(row),measure:p.measure,stepInMeasure:p.stepInMeasure});}));list.innerHTML="";if(!entries.length){const e=document.createElement("p");e.className="noteSidebarHint";e.textContent="No notes in this instrument yet. Close Note Editor to add some.";list.appendChild(e);return;}entries.forEach(item=>{const card=document.createElement("button");card.type="button";card.className="noteStatItem";const selected=labSelectedVelocityNote&&labSelectedVelocityNote.instrumentId===instrument.id&&labSelectedVelocityNote.step===item.step&&labSelectedVelocityNote.row===item.row;if(selected)card.classList.add("selected");const pitch=document.createElement("strong");pitch.textContent=item.pitch;const velocity=document.createElement("strong");velocity.textContent=Math.round(item.velocity*100)+"%";const place=document.createElement("span");place.textContent="Measure "+item.measure+" · Step "+item.stepInMeasure;const absolute=document.createElement("span");absolute.textContent="Grid step "+(item.step+1);card.append(pitch,velocity,place,absolute);card.addEventListener("click",()=>labSelectVelocityNote(instrument,item.step,item.row));list.appendChild(card);});}
+function labSelectVelocityNote(instrument,step,row){if(!instrument||!hasNote(instrument,step,row))return;labSelectedVelocityNote={instrumentId:instrument.id,step,row};labDefaultVelocity=labGetVelocity(instrument,step,row);document.getElementById("labVelocity").value=String(Math.round(labDefaultVelocity*100));document.getElementById("velocityValue").textContent=Math.round(labDefaultVelocity*100)+"%";labRenderVelocityAppearance();labRenderNoteStats();}
+function labRenderVelocityAppearance(){const instrument=getCurrentInstrument();document.querySelectorAll("#canvas .note").forEach(note=>{const step=Math.round((parseFloat(note.style.left)-2)/CELL_WIDTH),row=Math.round((parseFloat(note.style.top)-2)/ROW_HEIGHT);if(!instrument)return;const v=labGetVelocity(instrument,step,row),exists=hasNote(instrument,step,row),selected=labSelectedVelocityNote&&labSelectedVelocityNote.instrumentId===instrument.id&&labSelectedVelocityNote.step===step&&labSelectedVelocityNote.row===row;note.style.opacity=String(.15+v*.85);note.style.filter="saturate("+(0.45+v*.75)+") brightness("+(0.72+v*.28)+")";note.title=labPitchName(row)+" · Velocity "+Math.round(v*100)+"%";note.classList.toggle("velocity-editing",noteEditorActive&&exists);note.classList.toggle("velocity-selected",noteEditorActive&&exists&&!!selected);});if(noteEditorActive)labRenderNoteStats();}
+function labOpenNoteEditor(open){noteEditorActive=!!open;document.getElementById("noteEditorSidebar").hidden=!noteEditorActive;document.getElementById("noteEditorBtn").setAttribute("aria-pressed",String(noteEditorActive));document.getElementById("noteEditorBtn").classList.toggle("active",noteEditorActive);if(!noteEditorActive)labSelectedVelocityNote=null;labRenderVelocityAppearance();labRenderNoteStats();}
+document.getElementById("noteEditorBtn").addEventListener("click",()=>labOpenNoteEditor(!noteEditorActive));
+document.getElementById("closeNoteEditorBtn").addEventListener("click",()=>labOpenNoteEditor(false));
+document.getElementById("labVelocity").addEventListener("input",event=>{labDefaultVelocity=Number(event.target.value)/100;document.getElementById("velocityValue").textContent=event.target.value+"%";const n=labSelectedVelocityNote;if(!n)return;const i=state.instruments.find(item=>item.id===n.instrumentId);if(i&&hasNote(i,n.step,n.row)){labSetVelocity(i,n.step,n.row,labDefaultVelocity);labRenderVelocityAppearance();autoSave();}});
+document.getElementById("canvas").addEventListener("pointerdown",event=>{if(!noteEditorActive||event.button!==0)return;event.preventDefault();event.stopImmediatePropagation();const i=getCurrentInstrument(),p=getCellFromPointer(event);if(!i||p.step<0||p.row<0||p.row>=TOTAL_ROWS)return;if(!hasNote(i,p.step,p.row)){labSelectedVelocityNote=null;labRenderVelocityAppearance();labRenderNoteStats();return;}labSelectVelocityNote(i,p.step,p.row);},true);
+
+function labApplyPattern(kind) {
+  const category = ({fourfloor:"drums", breakbeat:"drums", bass:"melody", arpeggio:"melody", chords:"chords"})[kind];
+  setCategory(category);
+  const instrument = getCurrentInstrument();
+  if (!instrument) return;
+  const row = kind === "fourfloor" ? 36 : kind === "breakbeat" ? 38 : kind === "bass" ? 43 : kind === "arpeggio" ? 30 : 24;
+  const pattern = {
+    fourfloor: [[0,36],[4,36],[8,36],[12,36],[4,42],[12,42],[4,38],[12,38]],
+    breakbeat: [[0,36],[3,38],[4,42],[7,38],[8,36],[10,42],[12,38],[14,42]],
+    bass: [[0,43],[4,43],[6,38],[8,43],[12,40]],
+    arpeggio: [[0,30],[2,26],[4,22],[6,26],[8,30],[10,26],[12,22],[14,26]],
+    chords: [[0,24],[4,19],[8,21],[12,19]]
+  }[kind];
+  pushUndoSnapshot();
+  const start = Object.keys(instrument.notes || {}).map(Number).filter(Number.isFinite);
+  const offset = start.length ? Math.max(...start) + 1 : 0;
+  pattern.forEach(([step, noteRow]) => {
+    const targetRow = kind === "fourfloor" || kind === "breakbeat" ? noteRow : noteRow;
+    addNote(instrument, offset + step, targetRow);
+    labSetVelocity(instrument, offset + step, targetRow, labDefaultVelocity);
+  });
+  renderCurrentInstrument();
+  buildWholeSongView();
+  autoSave();
+  updateHistoryButtons();
+}
+document.querySelectorAll("[data-lab-pattern]").forEach(button=>button.addEventListener("click",()=>{labApplyPattern(button.dataset.labPattern);document.getElementById("patternLibraryOverlay").classList.remove("show");}));
+document.getElementById("patternLibraryBtn").addEventListener("click",()=>document.getElementById("patternLibraryOverlay").classList.add("show"));
+document.getElementById("closePatternLibraryBtn").addEventListener("click",()=>document.getElementById("patternLibraryOverlay").classList.remove("show"));
+document.getElementById("patternLibraryOverlay").addEventListener("click",e=>{if(e.target.id==="patternLibraryOverlay")e.currentTarget.classList.remove("show");});
+document.getElementById("keybindsBtn").addEventListener("click",()=>{document.getElementById("keybindsOverlay").classList.add("show");renderKeybindRows();});
+document.getElementById("closeKeybindsBtn").addEventListener("click",()=>document.getElementById("keybindsOverlay").classList.remove("show"));
+document.getElementById("keybindsOverlay").addEventListener("click",e=>{if(e.target.id==="keybindsOverlay")e.currentTarget.classList.remove("show");});
+document.getElementById("labGridSpacing").addEventListener("change", event => {
+  CELL_WIDTH = Number(event.target.value) || 40;
+  renderCurrentInstrument();
+});
+document.getElementById("labVelocity").addEventListener("input", event => {
+  labDefaultVelocity = Number(event.target.value) / 100;
+  document.getElementById("velocityValue").textContent = event.target.value + "%";
+  const selected = labSelectedVelocityNote;
+  if (selected) {
+    const instrument = state.instruments.find(item => item.id === selected.instrumentId);
+    if (instrument && hasNote(instrument, selected.step, selected.row)) {
+      labSetVelocity(instrument, selected.step, selected.row, labDefaultVelocity);
+      labRenderVelocityAppearance();
+      autoSave();
+    } else {
+      labSelectedVelocityNote = null;
+      labRenderVelocityAppearance();
+    }
+  }
+});
+
+
+function playStep(step) {
+
+  state.instruments.forEach(
+    instrument => {
+
+      const rows =
+        instrument.notes[step];
+
+      if (!rows) return;
+
+      rows.forEach(row => {
+        const velocity = labGetVelocity(instrument, step, row);
+        const originalVolume = instrument.volume;
+        instrument.volume = originalVolume * velocity;
+        playInstrumentNote(instrument, row);
+        instrument.volume = originalVolume;
+      });
+
+    }
+  );
+}
+
+
+function startPlayback() {
+
+  if (state.playing) return;
+
+  getAudioContext();
+
+  state.playing = true;
+  const bounds = document.getElementById("loopEnabled").checked ? loopBounds() : { start: 0, end: null };
+  state.playbackStep = bounds.start;
+  state.playbackStartTime = performance.now() - bounds.start * stepDuration() * 1000;
+
+  document.getElementById(
+    "playBtn"
+  ).textContent = "Stop";
+
+  playStep(state.playbackStep);
+  updatePlayback();
+}
+
+
+function stopPlayback() {
+
+  state.playing = false;
+
+  if (state.animationFrame) {
+
+    cancelAnimationFrame(
+      state.animationFrame
+    );
+
+    state.animationFrame = null;
+  }
+
+  state.playbackStep = 0;
+
+  document.getElementById(
+    "playBtn"
+  ).textContent = "Play";
+
+  updatePlayhead();
+}
+
+
+function togglePlayback() {
+
+  if (state.playing) {
+    stopPlayback();
+  } else {
+    startPlayback();
+  }
+}
+
+
+function updatePlayback() {
+
+  if (!state.playing) return;
+
+  const elapsed =
+    performance.now() -
+    state.playbackStartTime;
+
+  const durationMs =
+    stepDuration() * 1000;
+
+  const newStep =
+    Math.floor(
+      elapsed / durationMs
+    );
+
+  const songLength =
+    getSongLength();
+
+  const beatSteps =
+    getBeatSteps();
+
+  const loopLength =
+    Math.ceil(
+      songLength / beatSteps
+    ) *
+    beatSteps;
+
+  const loopEnabled = document.getElementById("loopEnabled").checked;
+  const bounds = loopEnabled ? loopBounds() : { start: 0, end: loopLength };
+  const effectiveEnd = loopEnabled ? bounds.end : loopLength;
+  if (newStep >= effectiveEnd) {
+    state.playbackStep = bounds.start;
+    state.playbackStartTime = performance.now() - bounds.start * durationMs;
+    playStep(state.playbackStep);
+  } else if (newStep < bounds.start) {
+    state.playbackStep = bounds.start;
+    state.playbackStartTime = performance.now() - bounds.start * durationMs;
+    playStep(state.playbackStep);
+  } else if (newStep !== state.playbackStep) {
+    state.playbackStep = newStep;
+    playStep(state.playbackStep);
+  }
+
+  updatePlayhead();
+
+  state.animationFrame =
+    requestAnimationFrame(
+      updatePlayback
+    );
+}
+
+
+function updatePlayhead() {
+
+  const playhead =
+    document.getElementById(
+      "playhead"
+    );
+
+  if (!playhead) return;
+
+  playhead.style.transform =
+    "translateX(" +
+    (
+      state.playbackStep *
+      CELL_WIDTH
+    ) +
+    "px)";
+
+  if (state.playing) {
+
+    const viewport =
+      document.getElementById(
+        "scrollViewport"
+      );
+
+    const x =
+      state.playbackStep *
+      CELL_WIDTH;
+
+    const left =
+      viewport.scrollLeft;
+
+    const right =
+      left +
+      viewport.clientWidth;
+
+    if (x > right - 100) {
+
+      viewport.scrollLeft =
+        x -
+        viewport.clientWidth /
+        2;
+    }
+
+    if (x < left + 50) {
+
+      viewport.scrollLeft =
+        Math.max(
+          0,
+          x - 100
+        );
+    }
+  }
+
+  updateWholePlayhead();
+}
+
+
+document
+  .getElementById("playBtn")
+  .addEventListener(
+    "click",
+    togglePlayback
+  );
+
+
+// Playback shortcut is handled by the customizable keybind dispatcher.
+
+
+/* =========================================================
+   BPM
+   ========================================================= */
+
+document
+  .getElementById("bpmInput")
+  .addEventListener(
+    "change",
+    event => {
+
+      let bpm =
+        Number(
+          event.target.value
+        );
+
+      if (!Number.isFinite(bpm)) {
+        bpm = 100;
+      }
+
+      bpm =
+        Math.max(
+          30,
+          Math.min(
+            300,
+            Math.round(bpm)
+          )
+        );
+
+      state.bpm = bpm;
+
+      event.target.value = bpm;
+
+      autoSave();
+    }
+  );
+
+
+/* =========================================================
+   WHOLE SONG VIEW
+   ========================================================= */
+
+function buildWholeSongView() {
+
+  const timeline =
+    document.getElementById(
+      "wholeTimeline"
+    );
+
+  const groups =
+    timeline.querySelectorAll(
+      ".overviewGroup"
+    );
+
+  groups.forEach(group => {
+
+    group
+      .querySelectorAll(
+        ".overviewNote, .overviewGridLine"
+      )
+      .forEach(
+        element =>
+          element.remove()
+      );
+  });
+
+  const songLength =
+    getSongLength();
+
+  timeline.style.width =
+    Math.max(
+      1000,
+      songLength * 28
+    ) +
+    "px";
+
+  const width =
+    songLength * 28;
+
+  const measureSteps =
+    getMeasureSteps();
+
+  const beatSteps =
+    getBeatSteps();
+
+  for (
+    let step = 0;
+    step <= songLength;
+    step++
+  ) {
+
+    const line =
+      document.createElement(
+        "div"
+      );
+
+    line.className =
+      "overviewGridLine";
+
+    line.style.left =
+      step * 28 +
+      "px";
+
+    if (
+      step % measureSteps === 0
+    ) {
+
+      line.style.background =
+        state.darkMode
+          ? "#62626a"
+          : "#bbb";
+
+      line.style.width = "2px";
+
+    } else if (
+      step % beatSteps === 0
+    ) {
+
+      line.style.background =
+        state.darkMode
+          ? "#414147"
+          : "#ddd";
+
+    } else {
+
+      line.style.opacity = ".55";
+    }
+
+    timeline.appendChild(line);
+  }
+
+  const categoryRows = {
+    drums: 0,
+    melody: 1,
+    chords: 2
+  };
+
+  state.instruments.forEach(
+    instrument => {
+
+      const groupIndex =
+        categoryRows[
+          instrument.category
+        ];
+
+      const group =
+        groups[groupIndex];
+
+      if (!group) return;
+
+      Object.keys(
+        instrument.notes
+      ).forEach(
+        stepString => {
+
+          const step =
+            Number(stepString);
+
+          if (
+            !instrument.notes[step] ||
+            instrument.notes[step].length === 0
+          ) {
+            return;
+          }
+
+          const note =
+            document.createElement(
+              "div"
+            );
+
+          note.className =
+            "overviewNote";
+
+          note.style.left =
+            step * 28 +
+            2 +
+            "px";
+
+          note.style.width =
+            "24px";
+
+          note.style.background =
+            COLORS[
+              instrument.category
+            ];
+
+          note.title =
+            instrument.name;
+
+          group.appendChild(note);
+        }
+      );
+    }
+  );
+
+  updateWholePlayhead();
+}
+
+
+function openWholeSong() {
+
+  buildWholeSongView();
+
+  document
+    .getElementById(
+      "wholeSong"
+    )
+    .classList.add("show");
+
+  document
+    .getElementById(
+      "viewMode"
+    )
+    .value = "whole";
+}
+
+
+function closeWholeSong() {
+
+  document
+    .getElementById(
+      "wholeSong"
+    )
+    .classList.remove("show");
+
+  document
+    .getElementById(
+      "viewMode"
+    )
+    .value = "category";
+}
+
+
+function updateWholePlayhead() {
+
+  const playhead =
+    document.getElementById(
+      "wholePlayhead"
+    );
+
+  if (!playhead) return;
+
+  playhead.style.left =
+    state.playbackStep *
+    28 +
+    "px";
+
+  playhead.style.display =
+    state.playing
+      ? "block"
+      : "none";
+}
+
+
+document
+  .getElementById(
+    "closeWholeSongBtn"
+  )
+  .addEventListener(
+    "click",
+    closeWholeSong
+  );
+
+
+document
+  .getElementById(
+    "viewMode"
+  )
+  .addEventListener(
+    "change",
+    event => {
+
+      if (
+        event.target.value ===
+        "whole"
+      ) {
+
+        openWholeSong();
+
+      } else {
+
+        closeWholeSong();
+      }
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "openWholeFromSettings"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      document
+        .getElementById(
+          "settingsOverlay"
+        )
+        .classList.remove("show");
+
+      openWholeSong();
+    }
+  );
+
+
+/* =========================================================
+   SETTINGS
+   ========================================================= */
+
+document
+  .getElementById(
+    "settingsBtn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      document
+        .getElementById(
+          "settingsOverlay"
+        )
+        .classList.add("show");
+    }
+  );
+
+
+document
+  .getElementById(
+    "closeSettingsBtn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      document
+        .getElementById(
+          "settingsOverlay"
+        )
+        .classList.remove("show");
+
+      autoSave();
+    }
+  );
+
+
+document
+  .getElementById(
+    "timeSignatureSelect"
+  )
+  .addEventListener(
+    "change",
+    event => {
+
+      const allowed = [
+        "2/4",
+        "3/4",
+        "4/4",
+        "5/4",
+        "6/8",
+        "7/8"
+      ];
+
+      state.timeSignature =
+        allowed.includes(
+          event.target.value
+        )
+          ? event.target.value
+          : "4/4";
+
+      renderCurrentInstrument();
+
+      if (
+        document
+          .getElementById(
+            "wholeSong"
+          )
+          .classList.contains(
+            "show"
+          )
+      ) {
+
+        buildWholeSongView();
+      }
+
+      autoSave();
+    }
+  );
+
+
+document
+  .getElementById(
+    "keySelect"
+  )
+  .addEventListener(
+    "change",
+    event => {
+
+      state.key =
+        event.target.value;
+
+      autoSave();
+    }
+  );
+
+
+document
+  .getElementById(
+    "scaleSelect"
+  )
+  .addEventListener(
+    "change",
+    event => {
+
+      state.scale =
+        event.target.value;
+
+      autoSave();
+    }
+  );
+
+
+document
+  .getElementById(
+    "autosaveToggle"
+  )
+  .addEventListener(
+    "change",
+    event => {
+
+      state.autosave =
+        event.target.checked;
+
+      if (state.autosave) {
+        autoSave();
+      }
+    }
+  );
+
+
+/* =========================================================
+   CLEAR
+   ========================================================= */
+
+document.getElementById("clearBtn").addEventListener("click", openClearConfirmation);
+
+
+/* =========================================================
+   SAVE / LOAD
+   ========================================================= */
+
+function projectData() {
+
+  return {
+    version: VERSION,
+
+    bpm: state.bpm,
+    key: state.key,
+    scale: state.scale,
+    autosave: state.autosave,
+    timeSignature:
+      state.timeSignature,
+
+    category: state.category,
+    currentInstrument:
+      state.currentInstrument,
+
+    instruments:
+      state.instruments.map(
+        instrument => ({
+          id: instrument.id,
+          name: instrument.name,
+          category: instrument.category,
+          type: instrument.type,
+          volume: Number.isFinite(instrument.volume) ? instrument.volume : 0.8,
+          notes: instrument.notes
+        })
+      )
+  };
+}
+
+
+function saveProject() {
+
+  const data =
+    JSON.stringify(
+      projectData(),
+      null,
+      2
+    );
+
+  const blob =
+    new Blob(
+      [data],
+      {
+        type: "application/json"
+      }
+    );
+
+  const url =
+    URL.createObjectURL(blob);
+
+  const a =
+    document.createElement("a");
+
+  a.href = url;
+  a.download =
+    "Soundloom-project.cmlplus";
+
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
+}
+
+
+function loadProject(data) {
+
+  if (
+    !data ||
+    !Array.isArray(
+      data.instruments
+    )
+  ) {
+
+    throw new Error(
+      "Invalid Soundloom project."
+    );
+  }
+
+  state.bpm =
+    Number.isFinite(
+      Number(data.bpm)
+    )
+      ? Math.max(
+          30,
+          Math.min(
+            300,
+            Number(data.bpm)
+          )
+        )
+      : 100;
+
+  state.key =
+    data.key || "C";
+
+  state.scale =
+    data.scale || "chromatic";
+
+  state.autosave =
+    data.autosave !== false;
+
+  const allowedTimeSignatures = [
+    "2/4",
+    "3/4",
+    "4/4",
+    "5/4",
+    "6/8",
+    "7/8"
+  ];
+
+  state.timeSignature =
+    allowedTimeSignatures.includes(
+      data.timeSignature
+    )
+      ? data.timeSignature
+      : "4/4";
+
+  state.instruments =
+    data.instruments.map(
+      instrument => ({
+
+        id:
+          instrument.id ||
+          String(
+            Date.now() +
+            Math.random()
+          ),
+
+        name:
+          instrument.name ||
+          "Instrument",
+
+        category:
+          [
+            "drums",
+            "melody",
+            "chords"
+          ].includes(
+            instrument.category
+          )
+            ? instrument.category
+            : "melody",
+
+        type:
+          instrument.type ||
+          "piano",
+
+        volume: Number.isFinite(Number(instrument.volume)) ? Math.max(0, Math.min(1, Number(instrument.volume))) : 0.8,
+
+        notes:
+          instrument.notes &&
+          typeof instrument.notes ===
+            "object"
+            ? instrument.notes
+            : {}
+      })
+    );
+
+  if (
+    state.instruments.length === 0
+  ) {
+
+    initializeInstruments();
+  }
+
+  state.category =
+    [
+      "drums",
+      "melody",
+      "chords"
+    ].includes(
+      data.category
+    )
+      ? data.category
+      : state.instruments[0]
+          .category;
+
+  const requestedIndex =
+    Number(
+      data.currentInstrument
+    );
+
+  state.currentInstrument =
+    Number.isInteger(
+      requestedIndex
+    ) &&
+    requestedIndex >= 0 &&
+    requestedIndex <
+      state.instruments.length
+      ? requestedIndex
+      : 0;
+
+  ensureCategoryInstrument(
+    state.category
+  );
+
+  document.getElementById(
+    "bpmInput"
+  ).value = state.bpm;
+
+  document.getElementById(
+    "keySelect"
+  ).value = state.key;
+
+  document.getElementById(
+    "scaleSelect"
+  ).value = state.scale;
+
+  document.getElementById(
+    "timeSignatureSelect"
+  ).value =
+    state.timeSignature;
+
+  document.getElementById(
+    "autosaveToggle"
+  ).checked =
+    state.autosave;
+
+  document
+    .querySelectorAll(
+      ".categoryButton"
+    )
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.category ===
+        state.category
+      );
+
+    });
+
+  renderCurrentInstrument();
+}
+
+
+document
+  .getElementById(
+    "saveBtn"
+  )
+  .addEventListener(
+    "click",
+    saveProject
+  );
+
+
+document
+  .getElementById(
+    "loadBtn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      document
+        .getElementById(
+          "fileInput"
+        )
+        .click();
+    }
+  );
+
+
+document
+  .getElementById(
+    "fileInput"
+  )
+  .addEventListener(
+    "change",
+    event => {
+
+      const file =
+        event.target.files[0];
+
+      if (!file) return;
+
+      const reader =
+        new FileReader();
+
+      reader.onload = () => {
+
+        try {
+
+          const data =
+            JSON.parse(
+              reader.result
+            );
+
+          loadProject(data);
+          autoSave();
+
+        } catch (error) {
+
+          alert(
+            "That file could not be loaded as a Soundloom project."
+          );
+        }
+      };
+
+      reader.readAsText(file);
+
+      event.target.value = "";
+    }
+  );
+
+
+/* =========================================================
+   AUTOSAVE
+   ========================================================= */
+
+function autoSave() {
+
+  if (!state.autosave) {
+    return;
+  }
+
+  try {
+
+    localStorage.setItem(
+      AUTOSAVE_KEY,
+      JSON.stringify(
+        projectData()
+      )
+    );
+
+  } catch (error) {
+
+    console.warn(
+      "Soundloom autosave unavailable."
+    );
+  }
+}
+
+
+function loadAutosave() {
+
+  try {
+
+    const raw =
+      localStorage.getItem(
+        AUTOSAVE_KEY
+      );
+
+    if (!raw) {
+      return false;
+    }
+
+    const data =
+      JSON.parse(raw);
+
+    loadProject(data);
+
+    return true;
+
+  } catch (error) {
+
+    console.warn(
+      "Autosave could not be restored.",
+      error
+    );
+
+    return false;
+  }
+}
+
+
+
+/* =========================================================
+   REPAIRED CONTROLS: MENUS, VOLUME, CATEGORY KEYS, HELP
+   ========================================================= */
+let instrumentMenuMode = "add";
+function currentInstrumentSafe() { return state.instruments[state.currentInstrument] || null; }
+function openInstrumentMenu(mode) {
+  instrumentMenuMode = mode;
+  const overlay = document.getElementById("instrumentMenuOverlay");
+  const title = document.getElementById("instrumentMenuTitle");
+  const hint = document.getElementById("instrumentMenuHint");
+  const choices = document.getElementById("instrumentMenuChoices");
+  choices.replaceChildren();
+  title.textContent = mode === "add" ? "Add an instrument" : "Choose an instrument";
+  hint.textContent = mode === "add" ? "Pick the exact sound you want to add." : "Pick an instrument already in your song.";
+  if (mode === "add") {
+    INSTRUMENTS.filter(item => item.category === state.category).forEach(definition => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = definition.name;
+      button.addEventListener("click", () => {
+        const instrument = createInstrument(definition);
+        state.instruments.push(instrument);
+        state.currentInstrument = state.instruments.length - 1;
+        setCategory(instrument.category);
+        renderCurrentInstrument(); autoSave(); closeInstrumentMenu();
+      });
+      choices.appendChild(button);
+    });
+  } else {
+    const indices = getCategoryInstrumentIndices(state.category);
+    indices.forEach(index => {
+      const instrument = state.instruments[index];
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = instrument.name + (index === state.currentInstrument ? " ✓" : "");
+      button.addEventListener("click", () => {
+        state.currentInstrument = index;
+        renderCurrentInstrument(); syncInstrumentVolume(); closeInstrumentMenu();
+      });
+      choices.appendChild(button);
+    });
+    if (!indices.length) { const empty = document.createElement("p"); empty.textContent = "No instruments in this section yet."; choices.appendChild(empty); }
+  }
+  overlay.classList.add("show");
+  const first = choices.querySelector("button"); if (first) first.focus();
+}
+function closeInstrumentMenu() { document.getElementById("instrumentMenuOverlay").classList.remove("show"); }
+function syncInstrumentVolume() {
+  const instrument = currentInstrumentSafe();
+  if (!instrument) return;
+  if (!Number.isFinite(instrument.volume)) instrument.volume = 0.8;
+  const slider = document.getElementById("instrumentVolume");
+  slider.value = String(Math.round(instrument.volume * 100));
+  document.getElementById("volumeValue").textContent = slider.value + "%";
+}
+function openClearConfirmation() {
+  const overlay = document.getElementById("clearConfirmOverlay");
+  overlay.classList.add("show");
+  document.getElementById("cancelClearBtn").focus();
+}
+function closeClearConfirmation() { document.getElementById("clearConfirmOverlay").classList.remove("show"); }
+function confirmClearSong() {
+  if (state.instruments.some(instrument => Object.keys(instrument.notes || {}).length)) pushUndoSnapshot();
+  state.instruments.forEach(instrument => { instrument.notes = {}; });
+  state.playbackStep = 0;
+  renderCurrentInstrument(); buildWholeSongView(); autoSave(); closeClearConfirmation();
+}
+document.getElementById("chooseInstrumentBtn").addEventListener("click", () => openInstrumentMenu("select"));
+document.getElementById("cancelInstrumentMenu").addEventListener("click", closeInstrumentMenu);
+document.getElementById("instrumentMenuOverlay").addEventListener("click", event => { if (event.target.id === "instrumentMenuOverlay") closeInstrumentMenu(); });
+document.getElementById("instrumentVolume").addEventListener("input", event => {
+  const instrument = currentInstrumentSafe(); if (!instrument) return;
+  instrument.volume = Math.max(0, Math.min(1, Number(event.target.value) / 100));
+  document.getElementById("volumeValue").textContent = event.target.value + "%";
+  autoSave();
+});
+document.getElementById("cancelClearBtn").addEventListener("click", closeClearConfirmation);
+document.getElementById("confirmClearBtn").addEventListener("click", confirmClearSong);
+document.getElementById("clearConfirmOverlay").addEventListener("click", event => { if (event.target.id === "clearConfirmOverlay") closeClearConfirmation(); });
+document.getElementById("helpBtn").addEventListener("click", () => { document.getElementById("helpOverlay").classList.add("show"); document.getElementById("closeHelpBtn").focus(); });
+document.getElementById("closeHelpBtn").addEventListener("click", () => document.getElementById("helpOverlay").classList.remove("show"));
+document.getElementById("helpOverlay").addEventListener("click", event => { if (event.target.id === "helpOverlay") event.currentTarget.classList.remove("show"); });
+// Customizable keyboard shortcuts (stored locally, separate from project files).
+const KEYBIND_STORAGE_KEY = "soundloom_keybinds";
+const DEFAULT_KEYBINDS={instruments:"c",addInstrument:"a",removeInstrument:"r",settings:"q",keybinds:"k",help:"h",save:"s",load:"l",clear:"Escape",close:"Shift",play:" ",previousTab:"ArrowLeft",nextTab:"ArrowRight",drums:"1",melody:"2",chords:"3",editMenu:"e",loopMenu:"o",projectMenu:"p",soundMenu:"v",moreMenu:"m",patternLibrary:"b",noteEditor:"n",gridSpacing:"g",labTools:"t",labTools:"t",undo:"u",redo:"y",copy:"x",paste:"z",duplicate:"j",patternFourfloor:"F1",patternBreakbeat:"F2",patternBass:"F3",patternArpeggio:"F4",patternChords:"F5",backToStart:"Home",wholeSongView:"w"};
+const KEYBIND_LABELS={instruments:"Open Instruments",addInstrument:"Add instrument",removeInstrument:"Remove instrument",settings:"Open Settings",keybinds:"Open Keyboard Controls",help:"Open Help",save:"Save project",load:"Load project",clear:"Clear project (confirm)",close:"Close current popup/menu",play:"Play / Stop",previousTab:"Previous category",nextTab:"Next category",drums:"Switch to Drums",melody:"Switch to Melody",chords:"Switch to Chords",editMenu:"Open Edit menu",loopMenu:"Open Loop menu",projectMenu:"Open Project menu",soundMenu:"Open Sound menu",moreMenu:"Open More menu",patternLibrary:"Open Pattern Library",noteEditor:"Toggle Note Editor",gridSpacing:"Cycle grid spacing",undo:"Undo",redo:"Redo",copy:"Copy pattern",paste:"Paste pattern",duplicate:"Duplicate pattern",patternFourfloor:"Add Four-on-the-floor",patternBreakbeat:"Add Breakbeat",patternBass:"Add Bass pulse",patternArpeggio:"Add Arpeggio",patternChords:"Add Three-chord loop",backToStart:"Return to welcome screen",wholeSongView:"Open Whole Song View"};
+let keybinds = { ...DEFAULT_KEYBINDS };
+let waitingForKeybind = null;
+try {
+  const savedKeybinds = JSON.parse(localStorage.getItem(KEYBIND_STORAGE_KEY) || "null");
+  if (savedKeybinds && typeof savedKeybinds === "object") {
+    Object.keys(DEFAULT_KEYBINDS).forEach(action => {
+      if (typeof savedKeybinds[action] === "string" && savedKeybinds[action]) keybinds[action] = savedKeybinds[action];
+    });
+  }
+} catch (_) {}
+
+function prettyKey(key) {
+  if (key === " ") return "Space";
+  if (key === "Escape") return "Esc";
+  if (key === "ArrowLeft") return "← Left";
+  if (key === "ArrowRight") return "→ Right";
+  if (key === "ArrowUp") return "↑ Up";
+  if (key === "ArrowDown") return "↓ Down";
+  if (key === "Shift") return "Shift";
+  if (key === "Control") return "Ctrl";
+  if (key === "Alt") return "Alt";
+  if (key === "Meta") return "Win / Cmd";
+  return key.length === 1 ? key.toUpperCase() : key;
+}
+function saveKeybinds() {
+  try { localStorage.setItem(KEYBIND_STORAGE_KEY, JSON.stringify(keybinds)); } catch (_) {}
+  renderKeybindRows();
+}
+function renderKeybindRows() {
+  const container = document.getElementById("keybindRows");
+  if (!container) return;
+  container.innerHTML = "";
+  Object.keys(DEFAULT_KEYBINDS).forEach(action => {
+    const row = document.createElement("div");
+    row.className = "keybindRow";
+    const label = document.createElement("span");
+    label.textContent = KEYBIND_LABELS[action];
+    const key = document.createElement("span");
+    key.className = "keybindKey";
+    key.textContent = waitingForKeybind === action ? "Press a key…" : prettyKey(keybinds[action]);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = waitingForKeybind === action ? "Listening…" : "Change";
+    button.addEventListener("click", () => {
+      waitingForKeybind = action;
+      renderKeybindRows();
+    });
+    row.append(label, key, button);
+    container.appendChild(row);
+  });
+}
+function anyOverlayOpen() {
+  return ["settingsOverlay","instrumentMenuOverlay","clearConfirmOverlay","helpOverlay","keybindsOverlay","patternLibraryOverlay"].some(id => {
+    const el = document.getElementById(id);
+    return el && (el.classList.contains("show") || (id === "settingsOverlay" && getComputedStyle(el).display !== "none"));
+  });
+}
+function closeTopOverlay() {
+  for (const id of ["helpOverlay","keybindsOverlay","patternLibraryOverlay","instrumentMenuOverlay","clearConfirmOverlay","settingsOverlay"]) {
+    const el = document.getElementById(id);
+    if (el && (el.classList.contains("show") || (id === "settingsOverlay" && getComputedStyle(el).display !== "none"))) {
+      el.classList.remove("show");
+      return true;
+    }
+  }
+  return false;
+}
+function isTypingTarget(target) {
+  return !!(target && target.closest && target.closest("input, select, textarea, [contenteditable='true']"));
+}
+document.getElementById("resetKeybindsBtn").addEventListener("click", () => {
+  keybinds = { ...DEFAULT_KEYBINDS };
+  waitingForKeybind = null;
+  saveKeybinds();
+});
+renderKeybindRows();
+
+document.addEventListener("keydown", event => {
+  // While remapping, the next key press is assigned instead of triggering an action.
+  if (waitingForKeybind) {
+    event.preventDefault();
+    event.stopPropagation();
+    const action = waitingForKeybind;
+    if (["Control", "Alt", "Meta"].includes(event.key)) return;
+    const duplicate = Object.keys(keybinds).find(other => other !== action && keybinds[other] === event.key);
+    if (duplicate) {
+      const rows = document.getElementById("keybindRows");
+      if (rows) {
+        const note = document.createElement("p");
+        note.className = "keybindHint";
+        note.textContent = `That key is already assigned to “${KEYBIND_LABELS[duplicate]}”. Choose another key.`;
+        rows.prepend(note);
+      }
+      waitingForKeybind = null;
+      renderKeybindRows();
+      return;
+    }
+    keybinds[action] = event.key;
+    waitingForKeybind = null;
+    saveKeybinds();
+    return;
+  }
+
+  const target = event.target;
+  // Do not steal normal typing or browser/editor shortcuts.
+  if (isTypingTarget(target)) return;
+  const key = event.key;
+  const normalized = key.length === 1 ? key.toLowerCase() : key;
+  if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "z") { event.preventDefault(); undoEdit(); return; }
+  if ((event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "y" || (event.shiftKey && event.key.toLowerCase() === "z"))) { event.preventDefault(); redoEdit(); return; }
+
+  const binding = Object.keys(keybinds).find(action => {
+    const bound = keybinds[action];
+    return bound.length === 1 ? bound.toLowerCase() === normalized : bound === key;
+  });
+  if (!binding) return;
+
+  // If a modal is open, the close shortcut closes it; Escape also closes menus.
+  if (binding === "close") {
+    if (closeTopOverlay()) { event.preventDefault(); return; }
+    closeToolbarMenusExcept();
+    document.querySelectorAll(".toolbarMenu[open]").forEach(menu => menu.open = false);
+    return;
+  }
+  if (binding === "clear") {
+    if (anyOverlayOpen()) {
+      closeTopOverlay();
+    } else {
+      openClearConfirmation();
+    }
+    event.preventDefault();
+    return;
+  }
+  if (anyOverlayOpen()) return;
+
+  const clickIds={settings:"settingsBtn",help:"helpBtn",save:"saveBtn",load:"loadBtn",play:"playBtn",addInstrument:"addInstrumentBtn",removeInstrument:"removeInstrumentBtn",undo:"undoBtn",redo:"redoBtn",copy:"copyBtn",paste:"pasteBtn",duplicate:"duplicateBtn",keybinds:"keybindsBtn",patternLibrary:"patternLibraryBtn",noteEditor:"noteEditorBtn",backToStart:"backToStartBtn",wholeSongView:"openWholeFromSettings"};
+  if(clickIds[binding]){document.getElementById(clickIds[binding]).click();event.preventDefault();return;}
+  const menuIds={editMenu:"editMenu",loopMenu:"loopMenu",projectMenu:"projectMenu",soundMenu:"soundMenu",moreMenu:"moreMenu",labTools:"labToolsMenu",gridSpacing:"gridSpacingMenu"};
+  if(menuIds[binding]){const m=document.getElementById(menuIds[binding]);m.open=!m.open;event.preventDefault();return;}
+  if(["drums","melody","chords"].includes(binding)){setCategory(binding);event.preventDefault();return;}
+  const patternKeys={patternFourfloor:"fourfloor",patternBreakbeat:"breakbeat",patternBass:"bass",patternArpeggio:"arpeggio",patternChords:"chords"};
+  if(patternKeys[binding]){labApplyPattern(patternKeys[binding]);event.preventDefault();return;}
+  if(binding==="gridSpacing"){const sel=document.getElementById("labGridSpacing"),values=["20","30","40","60"],i=values.indexOf(sel.value);sel.value=values[(i+1)%values.length];sel.dispatchEvent(new Event("change"));event.preventDefault();return;}
+  if(binding==="instruments"){openInstrumentMenu("select");event.preventDefault();return;}
+  if(binding==="previousTab"||binding==="nextTab"){const cats=["drums","melody","chords"],i=cats.indexOf(state.category),d=binding==="nextTab"?1:-1;setCategory(cats[(i+d+cats.length)%cats.length]);event.preventDefault();return;}
+});
+
+/* Robust toolbar menu dismissal.
+   Use capture-phase pointerdown so this still runs before other UI handlers,
+   even if one of them stops click propagation. Any outside press closes ALL
+   open toolbar menus, no matter how many were left open. */
+function closeToolbarMenusExcept(keepMenu = null) {
+  document.querySelectorAll(".toolbarMenu[open]").forEach(menu => {
+    if (menu !== keepMenu) menu.open = false;
+  });
+}
+
+document.addEventListener("pointerdown", event => {
+  const clickedMenu = event.target.closest(".toolbarMenu");
+  if (!clickedMenu) {
+    closeToolbarMenusExcept();
+  } else if (event.target.closest("summary")) {
+    // Switching menus closes any previously open dropdown.
+    closeToolbarMenusExcept(clickedMenu);
+  }
+}, true);
+
+// Keep a click fallback for keyboard-triggered or synthetic clicks.
+document.addEventListener("click", event => {
+  if (!event.target.closest(".toolbarMenu")) closeToolbarMenusExcept();
+});
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+initializeInstruments();
+
+loadAutosave();
+
+loadDarkModePreference();
+
+document
+  .getElementById(
+    "timeSignatureSelect"
+  )
+  .value =
+    state.timeSignature;
+
+document
+  .getElementById(
+    "darkModeToggle"
+  )
+  .checked =
+    state.darkMode;
+
+renderCurrentInstrument();
+
+// Welcome screen actions. The app's existing autosave is loaded before the
+// screen is dismissed, so entering Soundloom never wipes the user's work.
+const welcomeScreen = document.getElementById("welcomeScreen");
+function dismissWelcome() {
+  if (welcomeScreen) welcomeScreen.hidden = true;
+}
+document.getElementById("welcomeStart").addEventListener("click", dismissWelcome);
+// Returning to the front door only hides the workspace; it does not clear or
+// reload the current song. Starting again reveals the same in-memory project.
+document.getElementById("backToStartBtn").addEventListener("click", () => {
+  const openMenus = document.querySelectorAll("#topbar details[open]");
+  openMenus.forEach(menu => { menu.open = false; });
+  if (welcomeScreen) welcomeScreen.hidden = false;
+});
+document.getElementById("welcomeOpen").addEventListener("click", () => {
+  dismissWelcome();
+  // Let the overlay disappear before triggering the existing file picker.
+  requestAnimationFrame(() => document.getElementById("loadBtn").click());
+});
+
+</script>
+
+</body>
+</html>
