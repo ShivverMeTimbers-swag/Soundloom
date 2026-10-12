@@ -974,40 +974,6 @@ body.dark-mode .keybindKey {
 body.dark-mode .scrollbar-thumb,
 body.dark-mode #scrollViewport::-webkit-scrollbar-thumb { background:#625577; }
 
-/* RESPONSIVE LAYOUT: wrap controls instead of making the whole toolbar a swipe strip.
-   Small-screen workspace adjustment is scoped to this breakpoint. */
-@media (max-width: 700px) {
-  #topbar {
-    height: 108px;
-    min-height: 108px;
-    display:flex;
-    flex-wrap:wrap;
-    align-content:center;
-    gap:5px;
-    padding:6px 8px;
-    overflow-x:hidden;
-    overflow-y:auto;
-  }
-  #logo { display:none; }
-  #backToStartBtn { padding:6px 8px; font-size:12px; }
-  #topbar button { padding:6px 8px; font-size:12px; }
-  #topbar .toolbarMenu > summary { padding:6px 8px; font-size:12px; }
-  #instrumentName { display:none; }
-  .small-control { font-size:12px; }
-  .bpmControl { padding:4px 5px; }
-  #bpmInput { width:46px !important; }
-  #workspace { height:calc(100% - 207px); }
-  #categoryBar { min-height:42px; }
-}
-@media (max-width: 420px) {
-  #topbar { height:128px; min-height:128px; }
-  #workspace { height:calc(100% - 227px); }
-  #topbar #removeInstrumentBtn { display:none; }
-  #topbar #backToStartBtn { display:none; }
-  #topbar .toolbarMenu > summary { padding:6px 6px; }
-  #categoryBar { justify-content:space-around; }
-}
-
 /* ---------- MOBILE ---------- */
 
 @media (max-width: 700px) {
@@ -1136,6 +1102,41 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
 .keybindMenuPanel { width:min(620px,100%); } #keybindRows { max-height:58vh; overflow:auto; padding-right:4px; }
 .keybindRow { grid-template-columns:minmax(110px,1fr) auto auto; gap:10px; }
 @media(max-width:700px) { #noteEditorSidebar { top:auto; left:10px; right:10px; bottom:10px; width:auto; max-height:55vh; } }
+/* RESPONSIVE LAYOUT: wrap controls instead of making the whole toolbar a swipe strip.
+   Small-screen workspace adjustment is scoped to this breakpoint. */
+@media (max-width: 700px) {
+  #topbar {
+    height: 108px;
+    min-height: 108px;
+    display:flex;
+    flex-wrap:wrap;
+    align-content:center;
+    gap:5px;
+    padding:6px 8px;
+    overflow-x:hidden;
+    overflow-y:auto;
+  }
+  #logo { display:none; }
+  #backToStartBtn { padding:6px 8px; font-size:12px; }
+  #topbar button { padding:6px 8px; font-size:12px; }
+  #topbar .toolbarMenu > summary { padding:6px 8px; font-size:12px; }
+  #instrumentName { display:none; }
+  .small-control { font-size:12px; }
+  .bpmControl { padding:4px 5px; }
+  #bpmInput { width:46px !important; }
+  #workspace { height:calc(100% - 207px); }
+  #categoryBar { min-height:42px; }
+}
+@media (max-width: 420px) {
+  #topbar { height:128px; min-height:128px; }
+  #workspace { height:calc(100% - 227px); }
+  #topbar #removeInstrumentBtn { display:none; }
+  #topbar #backToStartBtn { display:none; }
+  #topbar .toolbarMenu > summary { padding:6px 6px; }
+  #categoryBar { justify-content:space-around; }
+}
+
+
 </style>
 </head>
 
@@ -4212,10 +4213,10 @@ function loadSampleSong() {
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
     name, category, type, volume: 0.8, notes, chords
   });
-  const drumNotes = {};
+  const drumNotes = {}, snareNotes = {};
   for (let step = 0; step < 32; step += 4) {
-    drumNotes[step] = [0];
-    if (step % 8 === 4) drumNotes[step] = [0, 10];
+    if (step % 8 === 0) drumNotes[step] = [0];
+    else snareNotes[step] = [0];
   }
   const hatNotes = {};
   for (let step = 0; step < 32; step += 2) hatNotes[step] = [0];
@@ -4230,9 +4231,10 @@ function loadSampleSong() {
 
   loadProject({
     bpm: 108, key: "C", scale: "major", autosave: true, timeSignature: "4/4",
-    category: "melody", currentInstrument: 2,
+    category: "melody", currentInstrument: 3,
     instruments: [
-      makeDemoInstrument("Demo Kick + Snare", "drums", "kick", drumNotes),
+      makeDemoInstrument("Demo Kick", "drums", "kick", drumNotes),
+      makeDemoInstrument("Demo Snare", "drums", "snare", snareNotes),
       makeDemoInstrument("Demo Hi-Hat", "drums", "hihat", hatNotes),
       makeDemoInstrument("Demo Melody", "melody", "piano", melodyNotes),
       makeDemoInstrument("Demo Chords", "chords", "chord-piano", chordNotes, chordMap)
