@@ -3130,7 +3130,8 @@ function startPlayback() {
   state.playbackStartTime = performance.now() - startStep * stepDuration() * 1000;
   state.scheduledLoopEndAudioTime = null;
   document.getElementById("playBtn").textContent = "Stop";
-  state.animationFrame = setTimeout(updatePlayback, 20);
+  // updatePlayback schedules exactly one follow-up timer itself.
+  // Calling it directly avoids leaving a second orphaned timer behind.
   updatePlayback();
 }
 
@@ -3231,7 +3232,6 @@ function updatePlayback() {
         }
         // A finite section loop ends here, then the rest of the song plays once.
         state.nextScheduleStep = bounds.end;
-        state.playbackStartAudioTime = state.nextAudioTime - bounds.end * duration;
         break;
       }
 
@@ -3239,7 +3239,6 @@ function updatePlayback() {
       // ordinary songs retain their loop behavior independently of the demo.
       window.soundloomLoopPass = pass + 1;
       state.nextScheduleStep = bounds.start;
-      state.playbackStartAudioTime = state.nextAudioTime - bounds.start * duration;
     }
 
     playStep(state.nextScheduleStep, state.nextAudioTime);
@@ -3249,11 +3248,9 @@ function updatePlayback() {
 
   const elapsedAudio = ctx.currentTime - state.playbackStartAudioTime;
   const currentStep = Math.max(0, Math.floor(elapsedAudio / duration));
-  // The audio clock stays continuous across sample loops; wrap its elapsed
-  // step count to keep the visible playhead on the step currently being heard.
-  state.playbackStep = sampleSongLooping
-    ? (currentStep % 32)
-    : Math.min(loopLength - 1, currentStep);
+  // Keep the playhead cycling with the audio clock for BOTH the demo and
+  // user-made songs. The clock itself stays continuous across every repeat.
+  state.playbackStep = currentStep % loopLength;
   updatePlayhead();
 
   if (state.scheduledLoopEndAudioTime !== null && ctx.currentTime >= state.scheduledLoopEndAudioTime) {
