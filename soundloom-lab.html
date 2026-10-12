@@ -862,9 +862,27 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
     </div>
   </details>
 
-  <button id="patternLibraryBtn" type="button">Pattern Library</button>
-  <button id="noteEditorBtn" type="button" aria-pressed="false">Note Editor</button>
-  <details class="toolbarMenu" id="gridSpacingMenu"><summary>Grid spacing</summary><div class="toolbarDropdown"><label class="menuField" for="labGridSpacing">Step width <select id="labGridSpacing" aria-label="Grid spacing"><option value="20">Fine / compact</option><option value="30">Medium</option><option value="40" selected>Default</option><option value="60">Wide</option></select></label><p class="dropdownHint">Visual spacing only; note timing stays the same.</p></div></details>
+  <details class="toolbarMenu" id="labToolsMenu">
+    <summary>Lab Tools</summary>
+    <div class="toolbarDropdown">
+      <button id="patternLibraryBtn" type="button">Pattern Library</button>
+      <button id="noteEditorBtn" type="button" aria-pressed="false">Note Editor</button>
+      <details class="toolbarMenu nestedToolbarMenu" id="gridSpacingMenu">
+        <summary>Grid spacing</summary>
+        <div class="toolbarDropdown">
+          <label class="menuField" for="labGridSpacing">Step width
+            <select id="labGridSpacing" aria-label="Grid spacing">
+              <option value="20">Fine / compact</option>
+              <option value="30">Medium</option>
+              <option value="40" selected>Default</option>
+              <option value="60">Wide</option>
+            </select>
+          </label>
+          <p class="dropdownHint">Visual spacing only; note timing stays the same.</p>
+        </div>
+      </details>
+    </div>
+  </details>
 </div>
 
 <!-- CATEGORY NAVIGATION -->
