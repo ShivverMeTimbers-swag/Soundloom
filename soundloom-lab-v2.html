@@ -3114,6 +3114,15 @@ function playbackBounds() {
   return {songLength, loopLength, sampleSongLooping, looping, bounds};
 }
 
+function recordPlaybackStep(step, when) {
+  if (!state.playbackTimeline) state.playbackTimeline = [];
+  state.playbackTimeline.push({step, time: when});
+  const cutoff = getAudioContext().currentTime - 2;
+  while (state.playbackTimeline.length > 1 && state.playbackTimeline[1].time < cutoff) {
+    state.playbackTimeline.shift();
+  }
+}
+
 function startPlayback() {
   if (state.playing) return;
   window.soundloomLoopPass = 1;
@@ -3124,6 +3133,7 @@ function startPlayback() {
   const info = playbackBounds();
   const startStep = info.looping ? info.bounds.start : 0;
   state.playbackStep = startStep;
+  state.playbackTimeline = [];
   state.nextScheduleStep = startStep;
   state.nextAudioTime = ctx.currentTime + 0.08;
   state.playbackStartAudioTime = state.nextAudioTime - startStep * stepDuration();
@@ -3150,6 +3160,7 @@ function stopPlayback(completedNaturally = false) {
     state.animationFrame = null;
   }
   state.playbackStep = 0;
+  state.playbackTimeline = [];
   state.nextScheduleStep = 0;
   state.scheduledLoopEndAudioTime = null;
   if (completedNaturally && window.soundloomSampleSongActive) {
@@ -3241,16 +3252,29 @@ function updatePlayback() {
       state.nextScheduleStep = bounds.start;
     }
 
+    recordPlaybackStep(state.nextScheduleStep, state.nextAudioTime);
     playStep(state.nextScheduleStep, state.nextAudioTime);
     state.nextScheduleStep++;
     state.nextAudioTime += duration;
   }
 
-  const elapsedAudio = ctx.currentTime - state.playbackStartAudioTime;
-  const currentStep = Math.max(0, Math.floor(elapsedAudio / duration));
-  // Keep the playhead cycling with the audio clock for BOTH the demo and
-  // user-made songs. The clock itself stays continuous across every repeat.
-  state.playbackStep = currentStep % loopLength;
+  if (sampleSongLooping) {
+    const elapsedAudio = ctx.currentTime - state.playbackStartAudioTime;
+    const currentStep = Math.max(0, Math.floor(elapsedAudio / duration));
+    state.playbackStep = currentStep % loopLength;
+  } else {
+    // Derive the visual playhead from the exact step timestamps sent to the
+    // audio scheduler, rather than a separate elapsed-time loop calculation.
+    const timeline = state.playbackTimeline || [];
+    let active = null;
+    for (let i = timeline.length - 1; i >= 0; i--) {
+      if (timeline[i].time <= ctx.currentTime) {
+        active = timeline[i];
+        break;
+      }
+    }
+    if (active) state.playbackStep = active.step;
+  }
   updatePlayhead();
 
   if (state.scheduledLoopEndAudioTime !== null && ctx.currentTime >= state.scheduledLoopEndAudioTime) {
