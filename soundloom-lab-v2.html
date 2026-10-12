@@ -3174,11 +3174,22 @@ function updatePlayback() {
     ) *
     beatSteps;
 
-  const loopEnabled = document.getElementById("loopEnabled").checked && !window.soundloomLoopCompleted;
-  const bounds = loopEnabled ? loopBounds() : { start: 0, end: loopLength };
+  const sampleSongLooping = !!window.soundloomSampleSongActive;
+  const loopEnabled = sampleSongLooping || (document.getElementById("loopEnabled").checked && !window.soundloomLoopCompleted);
+  const bounds = sampleSongLooping ? { start: 0, end: loopLength } : (loopEnabled ? loopBounds() : { start: 0, end: loopLength });
   const effectiveEnd = loopEnabled ? bounds.end : loopLength;
   if (newStep >= effectiveEnd) {
-    if (loopEnabled) {
+    if (sampleSongLooping) {
+      window.soundloomSampleSongPlays = (window.soundloomSampleSongPlays || 0) + 1;
+      if (window.soundloomSampleSongPlays >= 10 && !window.soundloomSampleSongEasterEggShown) {
+        window.soundloomSampleSongEasterEggShown = true;
+        window.alert("Okay, I know it's good, go back to making music.");
+      }
+      window.soundloomLoopPass = (window.soundloomLoopPass || 1) + 1;
+      state.playbackStep = 0;
+      state.playbackStartTime = performance.now();
+      playStep(0);
+    } else if (loopEnabled) {
       const selectedCount = document.getElementById("loopCount").value;
       const count = selectedCount === "custom"
         ? Math.max(1, Math.min(999, Number(document.getElementById("loopCustomCount").value) || 1))
@@ -4213,6 +4224,7 @@ document.getElementById("loadSampleSongBtn").addEventListener("click", loadSampl
 function loadSampleSong() {
   window.soundloomSampleSongActive = true;
   window.soundloomSampleSongPlays = 0;
+  window.soundloomSampleSongEasterEggShown = false;
   const hasNotes = state.instruments.some(instrument =>
     Object.values(instrument.notes || {}).some(rows => Array.isArray(rows) && rows.length) ||
     Object.keys(instrument.chords || {}).length
