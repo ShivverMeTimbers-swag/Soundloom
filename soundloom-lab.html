@@ -753,6 +753,21 @@ body.dark-mode .welcomeFoot { color: #817a92; }
 body.dark-mode .labSection { border-color:#444; }
 body.dark-mode .note.velocity-editing { outline-color:#bda0ff; }
 body.dark-mode .note.velocity-selected { outline-color:#ffd166 !important; }
+button,input,select,textarea,.toolbarMenu>summary,.toolbarDropdown,.menuPanel,.menuChoices button,.keybindKey { border-radius:10px; }
+button { transition:background-color .12s ease,transform .12s ease; } button:active { transform:translateY(1px); } select { padding:7px 10px; }
+.toolbarDropdown { border-radius:14px; overflow:hidden; } .toolbarDropdown button { border-radius:9px; }
+#noteEditorSidebar { position:fixed; z-index:950; top:84px; right:14px; bottom:14px; width:min(320px,calc(100vw - 28px)); display:flex; flex-direction:column; gap:12px; padding:16px; overflow:hidden; color:#242136; background:rgba(255,255,255,.97); border:1px solid #ded8ef; border-radius:18px; box-shadow:0 16px 50px rgba(35,24,60,.18); }
+#noteEditorSidebar[hidden] { display:none!important; } body.dark-mode #noteEditorSidebar { color:#f4f0ff; background:rgba(35,32,46,.98); border-color:#4a435d; }
+.noteSidebarHeader { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; } .noteSidebarHeader h2 { margin:0; font-size:19px; }
+.noteSidebarHeader p,.noteSidebarHint { margin:4px 0 0; font-size:12px; opacity:.72; line-height:1.45; } .noteSidebarControl { padding:12px; border-radius:12px; background:rgba(120,100,170,.09); }
+.noteSidebarControl label { display:flex; justify-content:space-between; gap:8px; font-size:12px; margin-bottom:10px; } .noteSidebarControl input { width:100%; }
+.noteStatsList { overflow:auto; display:flex; flex-direction:column; gap:7px; padding-right:2px; }
+.noteStatItem { display:grid; grid-template-columns:1fr auto; gap:4px 8px; padding:10px; border:1px solid #e7e1f1; border-radius:12px; background:rgba(120,100,170,.045); cursor:pointer; }
+.noteStatItem strong { font-size:13px; } .noteStatItem span { font-size:12px; opacity:.75; } .noteStatItem.selected { border-color:#8a63d2; background:rgba(138,99,210,.14); }
+body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatItem.selected { border-color:#bda0ff; }
+.keybindMenuPanel { width:min(620px,100%); } #keybindRows { max-height:58vh; overflow:auto; padding-right:4px; }
+.keybindRow { grid-template-columns:minmax(110px,1fr) auto auto; gap:10px; }
+@media(max-width:700px) { #noteEditorSidebar { top:auto; left:10px; right:10px; bottom:10px; width:auto; max-height:55vh; } }
 </style>
 </head>
 
@@ -842,41 +857,14 @@ body.dark-mode .note.velocity-selected { outline-color:#ffd166 !important; }
     <summary>More</summary>
     <div class="toolbarDropdown">
       <button id="settingsBtn">Settings</button>
+      <button id="keybindsBtn" type="button">Keyboard Controls</button>
       <button id="helpBtn">Help</button>
     </div>
   </details>
 
-  <details class="toolbarMenu" id="labMenu">
-    <summary>Lab tools</summary>
-    <div class="toolbarDropdown">
-      <div class="labSection">
-        <strong>Pattern Library</strong>
-        <button type="button" data-lab-pattern="fourfloor">Drums: Four-on-the-floor</button>
-        <button type="button" data-lab-pattern="breakbeat">Drums: Breakbeat starter</button>
-        <button type="button" data-lab-pattern="bass">Melody: Bass pulse</button>
-        <button type="button" data-lab-pattern="arpeggio">Melody: Arpeggio starter</button>
-        <button type="button" data-lab-pattern="chords">Chords: Three-chord loop</button>
-        <p class="labHint">Adds a starter pattern to the matching instrument. Existing notes are kept.</p>
-      </div>
-      <div class="labSection">
-        <strong>Grid spacing</strong>
-        <select id="labGridSpacing" aria-label="Grid spacing">
-          <option value="20">Fine / compact</option>
-          <option value="30">Medium</option>
-          <option value="40" selected>Default</option>
-          <option value="60">Wide</option>
-        </select>
-        <p class="labHint">Changes the visual spacing of steps; your note timing stays the same.</p>
-      </div>
-      <div class="labSection">
-        <strong>Note velocity</strong>
-        <label id="velocityModeLabel"><input id="velocityMode" type="checkbox"> Velocity edit mode</label>
-        <label for="labVelocity">Selected note strength <span id="velocityValue">75%</span></label>
-        <input id="labVelocity" type="range" min="10" max="100" value="75" style="width:100%">
-        <p class="labHint">Turn on velocity edit mode, then click an existing note to set its strength. Click again with the mode off to erase as usual.</p>
-      </div>
-    </div>
-  </details>
+  <button id="patternLibraryBtn" type="button">Pattern Library</button>
+  <button id="noteEditorBtn" type="button" aria-pressed="false">Note Editor</button>
+  <details class="toolbarMenu" id="gridSpacingMenu"><summary>Grid spacing</summary><div class="toolbarDropdown"><label class="menuField" for="labGridSpacing">Step width <select id="labGridSpacing" aria-label="Grid spacing"><option value="20">Fine / compact</option><option value="30">Medium</option><option value="40" selected>Default</option><option value="60">Wide</option></select></label><p class="dropdownHint">Visual spacing only; note timing stays the same.</p></div></details>
 </div>
 
 <!-- CATEGORY NAVIGATION -->
@@ -1066,15 +1054,6 @@ body.dark-mode .note.velocity-selected { outline-color:#ffd166 !important; }
       <button id="openWholeFromSettings">Open</button>
     </div>
 
-    <div class="keybindSection">
-      <h3>Keyboard Controls</h3>
-      <p class="keybindHint">Select Change, then press the key you want. Shortcuts are saved on this computer.</p>
-      <div id="keybindRows"></div>
-      <div class="panelActions" style="justify-content:flex-start;margin-top:10px">
-        <button id="resetKeybindsBtn" type="button">Reset Defaults</button>
-      </div>
-    </div>
-
     <div class="panelActions">
       <button id="closeSettingsBtn">Done</button>
     </div>
@@ -1090,9 +1069,11 @@ body.dark-mode .note.velocity-selected { outline-color:#ffd166 !important; }
 <div id="clearConfirmOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="clearConfirmTitle">
   <div class="menuPanel"><h2 id="clearConfirmTitle">Clear the whole song?</h2><p>This removes every note from every instrument. Your instruments will stay.</p><div class="menuActions"><button id="cancelClearBtn" class="active">No, keep it</button><button id="confirmClearBtn">Yes, clear song</button></div></div>
 </div>
-<div id="helpOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
-  <div class="menuPanel"><h2 id="helpTitle">Soundloom Help</h2><p><strong>Make notes:</strong> Click cells in the grid to add or remove notes.</p><p><strong>Change sections:</strong> Use Drums, Melody, and Chords, or press the left/right arrow keys when you are not typing in a field.</p><p><strong>Add instruments:</strong> Choose <em>+ Instrument</em>, then pick the sound you want. Use <em>Instruments</em> to switch between sounds already in the project.</p><p><strong>Volume:</strong> The Vol slider controls the selected instrument.</p><p><strong>Undo / Redo:</strong> Use the toolbar buttons or Ctrl+Z / Ctrl+Y.</p><p><strong>Copy / Paste / Duplicate:</strong> Copy the selected instrument's note pattern, paste it after the existing notes, or duplicate it in one click.</p><p><strong>Loop:</strong> Turn Loop on and choose the starting and ending measures to repeat during playback.</p><p><strong>Play and save:</strong> Use Play, BPM, Save, and Load. Settings contains time signature, key, scale, dark mode, auto-save, and Whole Song View.</p><div class="menuActions"><button id="closeHelpBtn" class="active">Got it</button></div></div>
-</div>
+<div id="helpOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="menuPanel"><h2 id="helpTitle">Soundloom Help</h2>
+<p><strong>Make notes:</strong> Click empty grid cells to add notes and existing notes to remove them.</p><p><strong>Instruments:</strong> Use + Instrument to add one and Instruments to switch sounds. Open Edit for undo, redo, copy, paste, and duplicate.</p><p><strong>Pattern Library:</strong> Choose a drum beat, bass pulse, arpeggio, or chord starter. It adds notes to the matching category and keeps existing notes.</p><p><strong>Note Editor:</strong> Opens a right sidebar listing each note's pitch, velocity, measure, and step. Select a note to change its velocity. The grid is locked against adding/removing notes until Note Editor is closed.</p><p><strong>Grid spacing:</strong> Choose Fine, Medium, Default, or Wide. This changes visual spacing, not note timing.</p><p><strong>Keyboard Controls:</strong> Open More → Keyboard Controls to customize shortcuts for menus and actions.</p><p><strong>Play and save:</strong> Use Play, BPM, Save, and Load. Settings contains time signature, key, scale, dark mode, auto-save, and Whole Song View.</p><div class="menuActions"><button id="closeHelpBtn" class="active">Got it</button></div></div></div>
+<div id="keybindsOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="keybindsTitle"><div class="menuPanel keybindMenuPanel"><h2 id="keybindsTitle">Keyboard Controls</h2><p class="keybindHint">Choose Change, then press a key. Shortcuts are saved on this computer.</p><div id="keybindRows"></div><div class="menuActions"><button id="resetKeybindsBtn" type="button">Reset defaults</button><button id="closeKeybindsBtn" class="active" type="button">Done</button></div></div></div>
+<div id="patternLibraryOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="patternLibraryTitle"><div class="menuPanel"><h2 id="patternLibraryTitle">Pattern Library</h2><p>Choose a starter pattern. Existing notes are kept.</p><div class="labSection"><strong>Drums</strong><div class="menuChoices"><button data-lab-pattern="fourfloor" type="button">Four-on-the-floor</button><button data-lab-pattern="breakbeat" type="button">Breakbeat starter</button></div></div><div class="labSection"><strong>Melody</strong><div class="menuChoices"><button data-lab-pattern="bass" type="button">Bass pulse</button><button data-lab-pattern="arpeggio" type="button">Arpeggio starter</button></div></div><div class="labSection"><strong>Chords</strong><div class="menuChoices"><button data-lab-pattern="chords" type="button">Three-chord loop</button></div></div><div class="menuActions"><button id="closePatternLibraryBtn" class="active" type="button">Done</button></div></div></div>
+<aside id="noteEditorSidebar" aria-label="Note statistics" hidden><div class="noteSidebarHeader"><div><h2>Note Editor</h2><p id="noteSidebarInstrument">Current instrument</p></div><button id="closeNoteEditorBtn" type="button" aria-label="Close Note Editor">×</button></div><div class="noteSidebarControl"><label for="labVelocity">Selected note velocity <strong id="velocityValue">75%</strong></label><input id="labVelocity" type="range" min="10" max="100" value="75"></div><p class="noteSidebarHint">Grid editing is locked while this panel is open.</p><div id="noteStatsList" class="noteStatsList"></div></aside>
 
 <script>
 /* =========================================================
