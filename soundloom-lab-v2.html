@@ -3233,10 +3233,10 @@ function updatePlayback() {
 
   const elapsedAudio = ctx.currentTime - state.playbackStartAudioTime;
   const currentStep = Math.max(0, Math.floor(elapsedAudio / duration));
-  // Keep the sample playhead synchronized to the actual scheduler step,
-  // including the 32-step wrap, rather than an independently drifting clock.
+  // The audio clock stays continuous across sample loops; wrap its elapsed
+  // step count to keep the visible playhead on the step currently being heard.
   state.playbackStep = sampleSongLooping
-    ? (state.nextScheduleStep % 32)
+    ? (currentStep % 32)
     : Math.min(loopLength - 1, currentStep);
   updatePlayhead();
 
