@@ -2766,9 +2766,10 @@ function updatePlayback() {
         playStep(state.playbackStep);
       } else {
         document.getElementById("loopEnabled").checked = false;
-        state.playbackStep = bounds.end;
-        state.playbackStartTime = performance.now() - bounds.end * durationMs;
         if (bounds.end >= loopLength) { stopPlayback(); return; }
+        // Let the normal playback branch play the step immediately after the loop.
+        state.playbackStep = bounds.end - 1;
+        state.playbackStartTime = performance.now() - bounds.end * durationMs;
       }
     } else {
       stopPlayback();
