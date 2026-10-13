@@ -3153,8 +3153,35 @@ function recordPlaybackStep(step, when) {
   }
 }
 
-function startPlayback() {
-  if (state.playing) return;
+let soundfontPreloadInProgress = false;
+let soundfontLoadRequestId = 0;
+
+async function startPlayback() {
+  if (state.playing || soundfontPreloadInProgress) return;
+
+  // Load only sampled instruments that actually have notes in the current song,
+  // so the first bar doesn't vanish while samples download and decode.
+  const activeTypes = window.Soundfont
+    ? [...new Set(state.instruments
+        .filter(instrument => Object.values(instrument.notes || {}).some(rows => Array.isArray(rows) && rows.length))
+        .map(instrument => instrument.type)
+        .filter(type => SOUNDFONT_PRESETS[type]))]
+    : [];
+  if (activeTypes.length) {
+    const requestId = ++soundfontLoadRequestId;
+    soundfontPreloadInProgress = true;
+    const button = document.getElementById("playBtn");
+    button.textContent = "Loading sounds…";
+    try {
+      await Promise.all(activeTypes.map(type => getSoundfontInstrument(type)));
+    } catch (_) {
+      // Individual loaders already fall back to oscillator sounds on failure.
+    }
+    if (requestId !== soundfontLoadRequestId) return;
+    soundfontPreloadInProgress = false;
+    button.textContent = "Play";
+  }
+
   window.soundloomLoopPass = 1;
   window.soundloomLoopCompleted = false;
   const ctx = getAudioContext();
@@ -3201,6 +3228,13 @@ function stopPlayback(completedNaturally = false) {
 }
 
 function togglePlayback() {
+  if (soundfontPreloadInProgress) {
+    // A second click cancels the pending start without cancelling downloads.
+    soundfontLoadRequestId++;
+    soundfontPreloadInProgress = false;
+    document.getElementById("playBtn").textContent = "Play";
+    return;
+  }
   if (state.playing) stopPlayback();
   else startPlayback();
 }
