@@ -1496,6 +1496,7 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
 <div id="patternLibraryOverlay" class="menuOverlay" role="dialog" aria-modal="true" aria-labelledby="patternLibraryTitle"><div class="menuPanel"><h2 id="patternLibraryTitle">Pattern Library</h2><p>Choose a starter pattern. Existing notes are kept.</p><div class="labSection"><strong>Drums</strong><div class="menuChoices"><button data-lab-pattern="fourfloor" type="button">Four-on-the-floor</button><button data-lab-pattern="breakbeat" type="button">Breakbeat starter</button></div></div><div class="labSection"><strong>Melody</strong><div class="menuChoices"><button data-lab-pattern="bass" type="button">Bass pulse</button><button data-lab-pattern="arpeggio" type="button">Arpeggio starter</button></div></div><div class="labSection"><strong>Chords</strong><div class="menuChoices"><button data-lab-pattern="chords" type="button">Three-chord loop</button></div></div><div class="menuActions"><button id="closePatternLibraryBtn" class="active" type="button">Done</button></div></div></div>
 <aside id="noteEditorSidebar" aria-label="Note statistics" hidden><div class="noteSidebarHeader"><div><h2>Note Editor</h2><p id="noteSidebarInstrument">Current instrument</p></div><button id="closeNoteEditorBtn" type="button" aria-label="Close Note Editor">×</button></div><div class="noteSidebarControl"><label for="labVelocity">Selected note velocity <strong id="velocityValue">75%</strong></label><input id="labVelocity" type="range" min="10" max="100" value="75"></div><p class="noteSidebarHint">Grid editing is locked while this panel is open.</p><div id="noteStatsList" class="noteStatsList"></div></aside>
 
+<script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.12.0/dist/soundfont-player.min.js"></script>
 <script>
 /* =========================================================
    SOUNDLOOM v0.8.0
@@ -1691,83 +1692,112 @@ function midiToFrequency(midi) {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
-function playTone(row, instrument, duration = .18, velocity = .55, when = null) {
+// Real sampled instruments, loaded only when needed. If the sample library or network
+// is unavailable, Soundloom keeps working with its original oscillator fallback.
+const SOUNDFONT_PRESETS = {
+  piano: "acoustic_grand_piano",
+  "chord-piano": "acoustic_grand_piano",
+  synth: "lead_2_sawtooth",
+  "chord-synth": "lead_2_sawtooth",
+  soft: "pad_2_warm",
+  organ: "drawbar_organ",
+  flute: "flute",
+  strings: "string_ensemble_1",
+  bass: "electric_bass_finger",
+  pluck: "acoustic_guitar_nylon",
+  "chord-guitar": "acoustic_guitar_steel"
+};
+const soundloomSoundfontCache = new Map();
 
+function getSoundfontInstrument(type) {
+  if (!window.Soundfont || !SOUNDFONT_PRESETS[type]) return Promise.resolve(null);
+  if (!soundloomSoundfontCache.has(type)) {
+    const ctx = getAudioContext();
+    const notes = Array.from({ length: TOTAL_ROWS }, (_, index) => 83 - index);
+    const promise = window.Soundfont.instrument(ctx, SOUNDFONT_PRESETS[type], {
+      soundfont: "FluidR3_GM",
+      notes
+    }).catch(error => {
+      console.warn("Soundloom: sample instrument could not load; using synthesized fallback.", type, error);
+      soundloomSoundfontCache.delete(type);
+      return null;
+    });
+    soundloomSoundfontCache.set(type, promise);
+  }
+  return soundloomSoundfontCache.get(type);
+}
+
+function playToneFallback(row, instrument, duration = .18, velocity = .55, when = null) {
   const ctx = getAudioContext();
   const startAt = Math.max(ctx.currentTime, Number.isFinite(when) ? when : ctx.currentTime);
-
   const baseMidi = 83 - row;
   const freq = midiToFrequency(baseMidi);
-
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
-
   let wave = "sine";
 
   switch (instrument.type) {
     case "piano":
-    case "chord-piano":
-      wave = "triangle";
-      break;
-
+    case "chord-piano": wave = "triangle"; break;
     case "synth":
-    case "chord-synth":
-      wave = "sawtooth";
-      break;
-
-    case "soft":
-      wave = "sine";
-      break;
-
-    case "organ":
-      wave = "square";
-      break;
-
-    case "flute":
-      wave = "sine";
-      break;
-
-    case "strings":
-      wave = "sawtooth";
-      break;
-
-    case "bass":
-      wave = "triangle";
-      break;
-
+    case "chord-synth": wave = "sawtooth"; break;
+    case "soft": wave = "sine"; break;
+    case "organ": wave = "square"; break;
+    case "flute": wave = "sine"; break;
+    case "strings": wave = "sawtooth"; break;
+    case "bass": wave = "triangle"; break;
     case "pluck":
-    case "chord-guitar":
-      wave = "triangle";
-      break;
+    case "chord-guitar": wave = "triangle"; break;
   }
 
   osc.type = wave;
-  osc.frequency.setValueAtTime(freq, startAt);
-
-  if (instrument.type === "bass") {
-    osc.frequency.setValueAtTime(freq / 2, startAt);
-  }
-
+  osc.frequency.setValueAtTime(instrument.type === "bass" ? freq / 2 : freq, startAt);
   gain.gain.setValueAtTime(.0001, startAt);
-
   gain.gain.exponentialRampToValueAtTime(
     Math.max(.001, velocity * (Number.isFinite(instrument.volume) ? instrument.volume : 0.8)),
     startAt + .008
   );
-
-  gain.gain.exponentialRampToValueAtTime(
-    .0001,
-    startAt + duration
-  );
-
+  gain.gain.exponentialRampToValueAtTime(.0001, startAt + duration);
   osc.connect(gain);
   gain.connect(ctx.destination);
-
   trackSoundloomSource(osc);
   osc.start(startAt);
   osc.stop(startAt + duration + .03);
 }
 
+function playTone(row, instrument, duration = .18, velocity = .55, when = null) {
+  const ctx = getAudioContext();
+  const startAt = Math.max(ctx.currentTime, Number.isFinite(when) ? when : ctx.currentTime);
+  const midi = 83 - row;
+  const volume = Number.isFinite(instrument.volume) ? instrument.volume : 0.8;
+  if (volume <= 0) return;
+
+  if (!window.Soundfont || !SOUNDFONT_PRESETS[instrument.type]) {
+    playToneFallback(row, instrument, duration, velocity, startAt);
+    return;
+  }
+
+  getSoundfontInstrument(instrument.type).then(sampled => {
+    if (!sampled) {
+      playToneFallback(row, instrument, duration, velocity, startAt);
+      return;
+    }
+    // Do not dump a burst of stale notes after an instrument takes time to load.
+    if (startAt < ctx.currentTime - 0.12) return;
+    const scheduledAt = Math.max(startAt, ctx.currentTime + 0.005);
+    try {
+      const source = sampled.play(midi, scheduledAt, {
+        duration,
+        gain: Math.max(0, Math.min(1, velocity * volume)),
+        release: instrument.type === "piano" || instrument.type === "chord-piano" ? 0.12 : 0.08
+      });
+      if (source && typeof source.addEventListener === "function") trackSoundloomSource(source);
+    } catch (error) {
+      console.warn("Soundloom: sampled note failed; using synthesized fallback.", error);
+      playToneFallback(row, instrument, duration, velocity, scheduledAt);
+    }
+  }).catch(() => playToneFallback(row, instrument, duration, velocity, startAt));
+}
 
 function playDrum(type, volume = 0.8, when = null) {
 
