@@ -1708,23 +1708,47 @@ const SOUNDFONT_PRESETS = {
   "chord-guitar": "acoustic_guitar_steel"
 };
 const soundloomSoundfontCache = new Map();
+// Instruments whose samples have finished loading (value: player, or null if loading failed).
+const soundloomSoundfontReady = new Map();
+const NOTE_NAMES_FLAT = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
+
+// MIDI.js soundfonts key their samples by note name ("C4", "Db4"), and the loader's
+// `notes` filter matches those keys exactly, so MIDI numbers must be converted first.
+function midiToNoteName(midi) {
+  return NOTE_NAMES_FLAT[midi % 12] + (Math.floor(midi / 12) - 1);
+}
+
+// The oscillator fallback plays bass an octave down; keep sampled bass in the same register.
+function sampledMidiForRow(row, type) {
+  return (83 - row) - (type === "bass" ? 12 : 0);
+}
+
+// Instruments sharing a preset (e.g. piano and chord-piano) share one download.
+function soundfontCacheKey(type) {
+  return SOUNDFONT_PRESETS[type] + (type === "bass" ? ":-12" : "");
+}
 
 function getSoundfontInstrument(type) {
   if (!window.Soundfont || !SOUNDFONT_PRESETS[type]) return Promise.resolve(null);
-  if (!soundloomSoundfontCache.has(type)) {
+  const key = soundfontCacheKey(type);
+  if (!soundloomSoundfontCache.has(key)) {
     const ctx = getAudioContext();
-    const notes = Array.from({ length: TOTAL_ROWS }, (_, index) => 83 - index);
+    const notes = Array.from({ length: TOTAL_ROWS }, (_, row) => midiToNoteName(sampledMidiForRow(row, type)));
     const promise = window.Soundfont.instrument(ctx, SOUNDFONT_PRESETS[type], {
       soundfont: "FluidR3_GM",
       notes
+    }).then(player => {
+      soundloomSoundfontReady.set(key, player || null);
+      return player || null;
     }).catch(error => {
+      // Remember the failure so we don't re-download on every single note.
       console.warn("Soundloom: sample instrument could not load; using synthesized fallback.", type, error);
-      soundloomSoundfontCache.delete(type);
+      soundloomSoundfontReady.set(key, null);
       return null;
     });
-    soundloomSoundfontCache.set(type, promise);
+    soundloomSoundfontCache.set(key, promise);
   }
-  return soundloomSoundfontCache.get(type);
+  return soundloomSoundfontCache.get(key);
 }
 
 function playToneFallback(row, instrument, duration = .18, velocity = .55, when = null) {
@@ -1768,7 +1792,6 @@ function playToneFallback(row, instrument, duration = .18, velocity = .55, when 
 function playTone(row, instrument, duration = .18, velocity = .55, when = null) {
   const ctx = getAudioContext();
   const startAt = Math.max(ctx.currentTime, Number.isFinite(when) ? when : ctx.currentTime);
-  const midi = 83 - row;
   const volume = Number.isFinite(instrument.volume) ? instrument.volume : 0.8;
   if (volume <= 0) return;
 
@@ -1777,26 +1800,40 @@ function playTone(row, instrument, duration = .18, velocity = .55, when = null) 
     return;
   }
 
-  getSoundfontInstrument(instrument.type).then(sampled => {
-    if (!sampled) {
+  // Samples not ready yet (e.g. first click on a new instrument): play the synth now
+  // instead of silently dropping the note, and warm up the samples for next time.
+  if (!soundloomSoundfontReady.has(soundfontCacheKey(instrument.type))) {
+    getSoundfontInstrument(instrument.type);
+    playToneFallback(row, instrument, duration, velocity, startAt);
+    return;
+  }
+
+  const sampled = soundloomSoundfontReady.get(soundfontCacheKey(instrument.type));
+  if (!sampled) {
+    playToneFallback(row, instrument, duration, velocity, startAt);
+    return;
+  }
+
+  try {
+    const node = sampled.play(sampledMidiForRow(row, instrument.type), startAt, {
+      duration,
+      gain: Math.max(0, Math.min(1, velocity * volume)),
+      release: instrument.type === "piano" || instrument.type === "chord-piano" ? 0.12 : 0.08
+    });
+    // sample-player returns undefined when it has no buffer for the note.
+    if (!node) {
       playToneFallback(row, instrument, duration, velocity, startAt);
       return;
     }
-    // Do not dump a burst of stale notes after an instrument takes time to load.
-    if (startAt < ctx.currentTime - 0.12) return;
-    const scheduledAt = Math.max(startAt, ctx.currentTime + 0.005);
-    try {
-      const source = sampled.play(midi, scheduledAt, {
-        duration,
-        gain: Math.max(0, Math.min(1, velocity * volume)),
-        release: instrument.type === "piano" || instrument.type === "chord-piano" ? 0.12 : 0.08
-      });
-      if (source && typeof source.addEventListener === "function") trackSoundloomSource(source);
-    } catch (error) {
-      console.warn("Soundloom: sampled note failed; using synthesized fallback.", error);
-      playToneFallback(row, instrument, duration, velocity, scheduledAt);
+    // The returned GainNode never fires "ended"; its AudioBufferSourceNode does.
+    soundloomScheduledSources.add(node);
+    if (node.source && typeof node.source.addEventListener === "function") {
+      node.source.addEventListener("ended", () => soundloomScheduledSources.delete(node), { once: true });
     }
-  }).catch(() => playToneFallback(row, instrument, duration, velocity, startAt));
+  } catch (error) {
+    console.warn("Soundloom: sampled note failed; using synthesized fallback.", error);
+    playToneFallback(row, instrument, duration, velocity, startAt);
+  }
 }
 
 function playDrum(type, volume = 0.8, when = null) {
@@ -3179,7 +3216,7 @@ async function startPlayback() {
     }
     if (requestId !== soundfontLoadRequestId) return;
     soundfontPreloadInProgress = false;
-    button.textContent = "Play";
+    button.textContent = "▶ Play";
   }
 
   window.soundloomLoopPass = 1;
@@ -3196,7 +3233,7 @@ async function startPlayback() {
   state.playbackStartAudioTime = state.nextAudioTime - startStep * stepDuration();
   state.playbackStartTime = performance.now() - startStep * stepDuration() * 1000;
   state.scheduledLoopEndAudioTime = null;
-  document.getElementById("playBtn").textContent = "Stop";
+  document.getElementById("playBtn").textContent = "■ Stop";
   // updatePlayback schedules exactly one follow-up timer itself.
   // Calling it directly avoids leaving a second orphaned timer behind.
   updatePlayback();
@@ -3204,6 +3241,10 @@ async function startPlayback() {
 
 function stopPlayback(completedNaturally = false) {
   state.playing = false;
+  if (soundfontPreloadInProgress) {
+    soundfontLoadRequestId++;
+    soundfontPreloadInProgress = false;
+  }
   // Cancel notes already queued in Web Audio, so Stop remains immediate.
   if (state.audioContext) {
     for (const source of soundloomScheduledSources) {
@@ -3223,7 +3264,7 @@ function stopPlayback(completedNaturally = false) {
   if (completedNaturally && window.soundloomSampleSongActive) {
     window.soundloomSampleSongActive = false;
   }
-  document.getElementById("playBtn").textContent = "Play";
+  document.getElementById("playBtn").textContent = "▶ Play";
   updatePlayhead();
 }
 
@@ -3232,7 +3273,7 @@ function togglePlayback() {
     // A second click cancels the pending start without cancelling downloads.
     soundfontLoadRequestId++;
     soundfontPreloadInProgress = false;
-    document.getElementById("playBtn").textContent = "Play";
+    document.getElementById("playBtn").textContent = "▶ Play";
     return;
   }
   if (state.playing) stopPlayback();
@@ -4341,7 +4382,7 @@ function confirmClearSong() {
   }
 
   // Stop the sample-song loop and discard every demo instrument/note/chord.
-  if (state.playing) stopPlayback();
+  if (state.playing || soundfontPreloadInProgress) stopPlayback();
   window.soundloomSampleSongActive = false;
   window.soundloomSampleSongPlays = 0;
   window.soundloomSampleSongEasterEggShown = false;
@@ -4379,7 +4420,7 @@ function loadSampleSong() {
   window.soundloomSampleSongActive = false;
   window.soundloomSampleSongPlays = 0;
   window.soundloomSampleSongEasterEggShown = false;
-  if (state.playing) stopPlayback();
+  if (state.playing || soundfontPreloadInProgress) stopPlayback();
 
   const makeDemoInstrument = (name, category, type, notes, chords = {}) => ({
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
@@ -4643,7 +4684,7 @@ document.getElementById("backToStartBtn").addEventListener("click", () => {
   openMenus.forEach(menu => { menu.open = false; });
   // The front door is a visual overlay, but leaving the workspace should also
   // stop playback so audio and the playhead cannot keep running behind it.
-  if (state.playing) stopPlayback();
+  if (state.playing || soundfontPreloadInProgress) stopPlayback();
   if (welcomeScreen) welcomeScreen.hidden = false;
 });
 document.getElementById("welcomeOpen").addEventListener("click", () => {
