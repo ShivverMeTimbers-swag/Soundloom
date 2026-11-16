@@ -1138,6 +1138,329 @@ body.dark-mode .noteStatItem { border-color:#4b435c; } body.dark-mode .noteStatI
 
 
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style id="soundloom-pro-css">
+/* =====================================================================
+   SOUNDLOOM STUDIO — professional layer (Song Maker–style layout)
+   Loaded after the original styles; presentation only.
+   ===================================================================== */
+body.sl-pro {
+  --sl-bg: #f6f6f9;
+  --sl-surface: #ffffff;
+  --sl-surface-2: #f1f1f6;
+  --sl-border: #e4e4ec;
+  --sl-border-strong: #cfcfdc;
+  --sl-text: #1c1b29;
+  --sl-text-2: #5d5b72;
+  --sl-text-3: #8e8ca3;
+  --sl-accent: #5b4fe0;
+  --sl-accent-hover: #4b3fd0;
+  --sl-accent-soft: #eeecfe;
+  --sl-grid-bg: #ffffff;
+  --sl-grid-alt: #fafafd;
+  --sl-grid-black: #f4f4f9;
+  --sl-grid-out: repeating-linear-gradient(135deg, rgba(120,118,150,.06) 0 4px, transparent 4px 8px);
+  --sl-tonic: rgba(91,79,224,.06);
+  --sl-line: #efeff5;
+  --sl-line-beat: #e0e0ea;
+  --sl-line-bar: #c4c3d6;
+  --sl-line-octave: #d6d5e4;
+  --sl-key-white: #ffffff;
+  --sl-key-black: #2a2938;
+  --sl-shadow: 0 1px 2px rgba(20,18,40,.05), 0 8px 24px rgba(20,18,40,.06);
+  --sl-radius: 10px;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+  background: var(--sl-bg) !important;
+  color: var(--sl-text) !important;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+body.sl-pro.dark-mode {
+  --sl-bg: #0f0f14;
+  --sl-surface: #17171e;
+  --sl-surface-2: #1f1f28;
+  --sl-border: #2a2a35;
+  --sl-border-strong: #3a3a48;
+  --sl-text: #ecebf5;
+  --sl-text-2: #a8a6bd;
+  --sl-text-3: #77758c;
+  --sl-accent: #8b80ff;
+  --sl-accent-hover: #9d94ff;
+  --sl-accent-soft: #25223f;
+  --sl-grid-bg: #14141b;
+  --sl-grid-alt: #17171f;
+  --sl-grid-black: #111117;
+  --sl-grid-out: repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 4px, transparent 4px 8px);
+  --sl-tonic: rgba(139,128,255,.08);
+  --sl-line: #1d1d26;
+  --sl-line-beat: #272733;
+  --sl-line-bar: #3c3b4e;
+  --sl-line-octave: #34334a;
+  --sl-key-white: #1d1d26;
+  --sl-key-black: #0b0b10;
+  --sl-shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+}
+body.sl-pro button, body.sl-pro select, body.sl-pro input { font-family: inherit; }
+
+/* ---------- Generic controls ---------- */
+body.sl-pro button {
+  background: var(--sl-surface) !important;
+  color: var(--sl-text) !important;
+  border: 1px solid var(--sl-border) !important;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 12px;
+  box-shadow: none;
+}
+body.sl-pro button:hover { background: var(--sl-surface-2) !important; border-color: var(--sl-border-strong) !important; }
+body.sl-pro button.active { background: var(--sl-accent) !important; border-color: var(--sl-accent) !important; color: #fff !important; }
+body.sl-pro :focus-visible { outline: 2px solid var(--sl-accent) !important; outline-offset: 2px; }
+body.sl-pro select, body.sl-pro input[type="number"], body.sl-pro input[type="text"] {
+  background: var(--sl-surface) !important; color: var(--sl-text) !important; border: 1px solid var(--sl-border) !important; border-radius: 7px;
+}
+body.sl-pro input[type="range"] { accent-color: var(--sl-accent); }
+
+/* ---------- Top bar ---------- */
+body.sl-pro #topbar {
+  flex: 0 0 auto;
+  min-height: 56px; height: 56px;
+  padding: 0 14px;
+  gap: 6px;
+  background: var(--sl-surface) !important;
+  border-bottom: 1px solid var(--sl-border) !important;
+}
+body.sl-pro #logo {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 17px; font-weight: 700; letter-spacing: -.3px; color: var(--sl-text); margin-right: 4px;
+}
+body.sl-pro #logo .slMark {
+  width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; color: #fff;
+  background: conic-gradient(from 200deg, #e8505b, #f39237, #f2cf2c, #41b883, #3b82f6, #a35bdc, #e8505b);
+}
+body.sl-pro #logo .slMark svg { filter: drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
+body.sl-pro #logo small { font-size: 10px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--sl-text-3); padding: 2px 6px; border: 1px solid var(--sl-border); border-radius: 5px; }
+body.sl-pro #backToStartBtn { padding: 6px 9px !important; color: var(--sl-text-2) !important; }
+body.sl-pro #backToStartBtn .lbl { margin-left: 4px; }
+body.sl-pro #topbar .slSpacer { flex: 1 1 auto; }
+
+/* Segmented category switch (moved into the top bar) */
+body.sl-pro #categoryBar {
+  height: auto; border: 1px solid var(--sl-border) !important; background: var(--sl-surface-2) !important;
+  border-radius: 10px; padding: 3px; gap: 2px; margin: 0 auto;
+}
+body.sl-pro .categoryButton, body.sl-pro:not(.dark-mode) .categoryButton[data-category] {
+  border: 0 !important; background: transparent !important; color: var(--sl-text-2) !important;
+  padding: 6px 16px !important; border-radius: 7px !important; font-weight: 600 !important; font-size: 13px !important;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+body.sl-pro .categoryButton::before { content: ""; flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--dot, #999); }
+body.sl-pro .categoryButton[data-category="drums"] { --dot: #7c6be0; }
+body.sl-pro .categoryButton[data-category="melody"] { --dot: linear-gradient(90deg,#e8505b,#f2cf2c,#3b82f6); }
+body.sl-pro .categoryButton[data-category="melody"]::before { background: linear-gradient(135deg,#e8505b,#f2cf2c 50%,#3b82f6); }
+body.sl-pro .categoryButton[data-category="chords"] { --dot: #f39237; }
+body.sl-pro .categoryButton:hover { color: var(--sl-text) !important; background: rgba(127,127,160,.08) !important; }
+body.sl-pro .categoryButton.active, body.sl-pro:not(.dark-mode) .categoryButton[data-category].active, body.sl-pro.dark-mode .categoryButton[data-category].active { background: var(--sl-surface) !important; color: var(--sl-text) !important; box-shadow: 0 1px 2px rgba(20,18,40,.1), 0 0 0 1px var(--sl-border); }
+
+/* Menus */
+body.sl-pro .toolbarMenu > summary {
+  background: transparent !important; border: 1px solid transparent !important; color: var(--sl-text-2) !important;
+  font-size: 13px !important; font-weight: 500; padding: 7px 10px !important; border-radius: 8px !important; box-shadow: none !important;
+}
+body.sl-pro .toolbarMenu > summary:hover, body.sl-pro .toolbarMenu[open] > summary { background: var(--sl-surface-2) !important; color: var(--sl-text) !important; border-color: var(--sl-border) !important; }
+body.sl-pro .toolbarMenu > summary::after { content: "" !important; display: inline-block; width: 6px; height: 6px; margin-left: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-3px) rotate(45deg); opacity: .6; }
+body.sl-pro .toolbarDropdown {
+  background: var(--sl-surface) !important; border: 1px solid var(--sl-border) !important; border-radius: 12px !important;
+  box-shadow: 0 16px 40px rgba(20,18,40,.16) !important; padding: 6px !important;
+}
+body.sl-pro.dark-mode .toolbarDropdown { box-shadow: 0 16px 40px rgba(0,0,0,.5) !important; }
+body.sl-pro .toolbarDropdown button, body.sl-pro #labToolsMenu .nestedToolbarMenu > summary {
+  background: transparent !important; border-color: transparent !important; color: var(--sl-text) !important; border-radius: 7px !important;
+}
+body.sl-pro .toolbarDropdown button:hover { background: var(--sl-surface-2) !important; }
+body.sl-pro .toolbarDropdown button:disabled { opacity: .4; }
+body.sl-pro .menuField, body.sl-pro #volumeControl, body.sl-pro .loopPointGroup > strong { color: var(--sl-text-2) !important; }
+body.sl-pro .loopPointGroup { background: var(--sl-surface-2) !important; border-color: var(--sl-border) !important; }
+body.sl-pro .dropdownHint { color: var(--sl-text-3) !important; }
+
+/* ---------- Chord maker bar ---------- */
+body.sl-pro #chordMakerBar { flex: 0 0 auto; background: var(--sl-surface) !important; border-bottom: 1px solid var(--sl-border) !important; color: var(--sl-text) !important; height: 48px; }
+body.sl-pro #chordMakerBar strong { color: #f39237; }
+body.sl-pro #chordMakerHint { color: var(--sl-text-3) !important; }
+
+/* ---------- Workspace ---------- */
+body.sl-pro #workspace { flex: 1 1 auto; height: auto !important; min-height: 0; background: var(--sl-bg); }
+body.sl-pro #instrumentStrip { display: none !important; }
+body.sl-pro #gridFrame {
+  inset: 10px 12px 10px 12px !important; border: 1px solid var(--sl-border) !important; border-radius: 12px !important;
+  background: var(--sl-grid-bg) !important; box-shadow: var(--sl-shadow);
+}
+body.sl-pro #scrollViewport { left: 56px !important; }
+body.sl-pro #scrollViewport::-webkit-scrollbar-thumb { background: var(--sl-border-strong); }
+body.sl-pro #canvas { cursor: pointer; background-color: var(--sl-grid-bg); }
+body.sl-pro .cell { display: none !important; }
+body.sl-pro .row { border-bottom: 1px solid var(--sl-line) !important; background: transparent; }
+body.sl-pro .row.sl-black { background: var(--sl-grid-black); }
+body.sl-pro .row.sl-octave { border-bottom-color: var(--sl-line-octave) !important; }
+body.sl-pro .row.sl-out { background-image: var(--sl-grid-out); }
+body.sl-pro .row.sl-tonic { background-color: var(--sl-tonic); }
+body.sl-pro.sl-drums .row.sl-black, body.sl-pro.sl-drums .row.sl-out, body.sl-pro.sl-drums .row.sl-tonic { background: transparent; }
+body.sl-pro #slGridLines { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+
+body.sl-pro #instrumentIndicator {
+  left: auto !important; right: 14px; top: 10px; background: var(--sl-surface) !important; color: var(--sl-text-2) !important;
+  border: 1px solid var(--sl-border) !important; border-radius: 999px !important; font-weight: 600; font-size: 11px; padding: 4px 10px;
+  box-shadow: 0 2px 8px rgba(20,18,40,.06); opacity: .92;
+}
+body.sl-pro #emptyState span { background: var(--sl-surface) !important; color: var(--sl-text-3); border: 1px solid var(--sl-border); border-radius: 999px; padding: 8px 16px; font-size: 13px; box-shadow: var(--sl-shadow); }
+
+/* Notes */
+body.sl-pro .note {
+  border-radius: 5px !important;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,.14), 0 1px 2px rgba(0,0,0,.12);
+  transition: transform .12s ease, filter .12s ease;
+}
+body.sl-pro .note.sl-drum { border-radius: 50% !important; box-shadow: inset 0 -2px 0 rgba(0,0,0,.18), 0 1px 2px rgba(0,0,0,.15); }
+body.sl-pro .note.sl-chord { border-radius: 4px !important; box-shadow: inset 0 0 0 2px rgba(255,255,255,.35), 0 1px 2px rgba(0,0,0,.15); }
+body.sl-pro .note.sl-hit { transform: scale(1.18); filter: brightness(1.18) saturate(1.2) !important; z-index: 6; box-shadow: 0 0 0 3px rgba(255,255,255,.6), 0 0 16px 2px var(--glow, rgba(91,79,224,.6)); }
+body.sl-pro #slHover {
+  position: absolute; z-index: 4; pointer-events: none; border-radius: 5px; opacity: 0; transition: opacity .08s;
+  background: var(--hc, var(--sl-accent)); opacity: 0;
+}
+body.sl-pro #slHover.on { opacity: .28; }
+body.sl-pro #slHoverCol { position: absolute; top: 0; bottom: 0; z-index: 2; pointer-events: none; background: rgba(127,127,170,.06); display: none; }
+body.sl-pro #slHoverCol.on { display: block; }
+
+/* Playhead: Song Maker–style column band */
+body.sl-pro #playhead { width: var(--cw, 40px) !important; background: rgba(91,79,224,.10) !important; border-left: 2px solid var(--sl-accent); z-index: 4 !important; }
+body.sl-pro.dark-mode #playhead { background: rgba(139,128,255,.12) !important; }
+body.sl-pro #playheadDot { display: none; }
+
+/* ---------- Piano key ruler ---------- */
+body.sl-pro #slRuler {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 56px; overflow: hidden; z-index: 15;
+  border-right: 1px solid var(--sl-border); background: var(--sl-surface);
+}
+body.sl-pro #slRulerInner { position: absolute; left: 0; right: 0; top: 0; will-change: transform; }
+body.sl-pro .slKey {
+  position: absolute; left: 0; right: 0; display: flex; align-items: center; justify-content: flex-end; padding-right: 7px;
+  font-size: 9.5px; font-weight: 600; color: var(--sl-text-3); border-bottom: 1px solid var(--sl-line); cursor: pointer; user-select: none;
+  background: var(--sl-key-white); font-variant-numeric: tabular-nums;
+}
+body.sl-pro .slKey.black { background: linear-gradient(90deg, var(--sl-key-black) 0 62%, var(--sl-key-white) 62%); color: transparent; }
+body.sl-pro .slKey.c { color: var(--sl-text); font-weight: 700; border-bottom-color: var(--sl-line-octave); }
+body.sl-pro .slKey.out:not(.black) { color: var(--sl-text-3); opacity: .55; }
+body.sl-pro .slKey.hover, body.sl-pro .slKey:hover { background: var(--sl-accent-soft); color: var(--sl-accent); }
+body.sl-pro .slKey.black.hover, body.sl-pro .slKey.black:hover { background: linear-gradient(90deg, var(--sl-accent) 0 62%, var(--sl-accent-soft) 62%); }
+body.sl-pro .slKey .pc { position: absolute; left: 4px; width: 4px; top: 3px; bottom: 3px; border-radius: 2px; opacity: .9; }
+body.sl-pro.sl-drums #slRuler .slKey { color: transparent; background: var(--sl-surface); }
+body.sl-pro.sl-drums #slRuler .slKey .pc { display: none; }
+body.sl-pro #slRulerDrum { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--sl-text-3); pointer-events: none; }
+body.sl-pro.sl-drums #slRulerDrum { display: flex; }
+
+/* ---------- Bottom transport ---------- */
+#slTransport {
+  flex: 0 0 auto; height: 76px; display: flex; align-items: center; gap: 14px; padding: 0 18px;
+  background: var(--sl-surface); border-top: 1px solid var(--sl-border); position: relative; z-index: 40;
+}
+#slTransport .grp { display: flex; align-items: center; gap: 8px; }
+#slTransport .sep { width: 1px; height: 34px; background: var(--sl-border); }
+#slTransport .lbl { font-size: 10.5px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--sl-text-3); }
+body.sl-pro #playBtn {
+  width: 52px; height: 52px; border-radius: 50% !important; padding: 0 !important; font-size: 0 !important; position: relative; flex: 0 0 auto;
+  background: var(--sl-accent) !important; border: 0 !important; color: #fff !important;
+  box-shadow: 0 6px 16px rgba(91,79,224,.35), inset 0 -2px 0 rgba(0,0,0,.15) !important; transition: transform .1s, background .15s;
+}
+body.sl-pro #playBtn:hover { background: var(--sl-accent-hover) !important; transform: scale(1.04); }
+body.sl-pro #playBtn::before { content: ""; position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform: translate(-35%,-50%);
+  border-style: solid; border-width: 10px 0 10px 16px; border-color: transparent transparent transparent #fff; }
+body.sl-pro #playBtn[data-state="playing"]::before { border: 0; width: 16px; height: 16px; border-radius: 3px; background: #fff; transform: translate(-50%,-50%); }
+body.sl-pro #playBtn[data-state="loading"]::before { border: 3px solid rgba(255,255,255,.35); border-top-color: #fff; width: 20px; height: 20px; border-radius: 50%; background: none; transform: translate(-50%,-50%); animation: slSpin .8s linear infinite; }
+@keyframes slSpin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+#slTempo { display: flex; align-items: center; gap: 10px; }
+#slTempo input[type="range"] { width: 150px; }
+body.sl-pro #slTempo .bpmControl { border: 0 !important; background: transparent !important; padding: 0 !important; display: flex; align-items: baseline; gap: 4px; }
+body.sl-pro #slTempo .bpmControl span { order: 2; font-size: 11px; font-weight: 600; color: var(--sl-text-3) !important; }
+body.sl-pro #bpmInput { width: 50px !important; font-size: 18px !important; font-weight: 700; text-align: right; border: 0 !important; background: transparent !important; padding: 0 !important; -moz-appearance: textfield; font-variant-numeric: tabular-nums; }
+body.sl-pro #bpmInput::-webkit-inner-spin-button { display: none; }
+
+#slInstrumentChip {
+  display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 12px; border: 1px solid var(--sl-border); border-radius: 12px; background: var(--sl-surface-2); min-width: 0;
+}
+#slInstrumentChip .swatch { width: 26px; height: 26px; border-radius: 7px; flex: 0 0 auto; background: var(--chip, #5b4fe0); display: grid; place-items: center; color: #fff; }
+#slInstrumentChip .meta { display: flex; flex-direction: column; min-width: 0; }
+body.sl-pro #instrumentName { margin: 0 !important; text-align: left; font-size: 14px !important; font-weight: 650; color: var(--sl-text) !important; max-width: 150px; min-width: 0; }
+body.sl-pro #slInstrumentChip button { padding: 6px 10px !important; font-size: 12px !important; }
+body.sl-pro .slIconBtn { width: 36px; height: 36px; padding: 0 !important; display: inline-grid !important; place-items: center; border-radius: 9px !important; color: var(--sl-text-2) !important; }
+body.sl-pro .slIconBtn:hover { color: var(--sl-text) !important; }
+body.sl-pro .slIconBtn:disabled { opacity: .35; cursor: default; }
+body.sl-pro .slIconBtn svg, body.sl-pro #slInstrumentChip svg { display: block; }
+body.sl-pro #slExportBtn { background: var(--sl-text) !important; color: var(--sl-surface) !important; border-color: var(--sl-text) !important; font-weight: 600 !important; padding: 9px 14px !important; display: inline-flex; gap: 7px; align-items: center; border-radius: 10px !important; }
+body.sl-pro #slExportBtn:hover { opacity: .9; }
+#slMeter { width: 6px; height: 40px; border-radius: 3px; background: var(--sl-surface-2); border: 1px solid var(--sl-border); position: relative; overflow: hidden; }
+#slMeter i { position: absolute; left: 0; right: 0; bottom: 0; height: 0%; background: linear-gradient(to top, #41b883 0 60%, #f2cf2c 80%, #e8505b 100%); background-size: 100% 40px; background-position: bottom; transition: height .06s linear; }
+#slTime { font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 600; color: var(--sl-text-2); min-width: 62px; }
+
+/* ---------- Export dialog ---------- */
+#slExportOverlay { position: fixed; inset: 0; z-index: 1200; display: none; align-items: center; justify-content: center; background: rgba(15,14,25,.45); backdrop-filter: blur(4px); padding: 16px; }
+#slExportOverlay.show { display: flex; }
+#slExportOverlay .card { width: min(460px, 100%); background: var(--sl-surface); color: var(--sl-text); border: 1px solid var(--sl-border); border-radius: 16px; padding: 22px; box-shadow: 0 24px 60px rgba(0,0,0,.25); }
+#slExportOverlay h2 { margin: 0 0 4px; font-size: 18px; }
+#slExportOverlay p.sub { margin: 0 0 16px; color: var(--sl-text-2); font-size: 13px; }
+#slExportOverlay .opt { display: flex; width: 100%; align-items: center; gap: 14px; text-align: left; padding: 12px 14px !important; margin-bottom: 8px; border-radius: 12px !important; }
+#slExportOverlay .opt .ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; color: #fff; flex: 0 0 auto; }
+#slExportOverlay .opt strong { display: block; font-size: 14px; }
+#slExportOverlay .opt span { display: block; font-size: 12px; color: var(--sl-text-2); font-weight: 400; margin-top: 2px; }
+#slExportOverlay .status { min-height: 18px; font-size: 12.5px; color: var(--sl-text-2); margin: 6px 0 0; }
+#slExportOverlay .progress { height: 4px; border-radius: 2px; background: var(--sl-surface-2); overflow: hidden; margin-top: 8px; display: none; }
+#slExportOverlay .progress i { display: block; height: 100%; width: 0; background: var(--sl-accent); transition: width .2s linear; }
+#slExportOverlay .actions { display: flex; justify-content: flex-end; margin-top: 12px; }
+
+/* ---------- Panels / overlays polish ---------- */
+body.sl-pro .panel, body.sl-pro .menuPanel { background: var(--sl-surface) !important; color: var(--sl-text) !important; border: 1px solid var(--sl-border) !important; border-radius: 16px !important; box-shadow: 0 24px 60px rgba(20,18,40,.18) !important; }
+body.sl-pro .overlay { background: rgba(15,14,25,.4) !important; backdrop-filter: blur(4px); }
+body.sl-pro .settingRow { border-color: var(--sl-border) !important; }
+body.sl-pro .settingDescription { color: var(--sl-text-2) !important; }
+body.sl-pro #wholeSong { top: 56px !important; bottom: 76px !important; background: var(--sl-bg) !important; }
+body.sl-pro #wholeHeader { background: var(--sl-surface) !important; border-color: var(--sl-border) !important; }
+body.sl-pro #wholeTimeline { background: var(--sl-surface); border-color: var(--sl-border) !important; }
+body.sl-pro #noteEditorSidebar { background: var(--sl-surface) !important; border-color: var(--sl-border) !important; color: var(--sl-text) !important; }
+
+/* Welcome screen */
+body.sl-pro .welcomeWordmark span { color: var(--sl-accent) !important; }
+body.sl-pro #welcomeStart { background: var(--sl-accent) !important; color: #fff !important; border: 0 !important; padding: 13px 26px !important; border-radius: 12px !important; font-weight: 700 !important; font-size: 15px !important; box-shadow: 0 8px 20px rgba(91,79,224,.3) !important; }
+body.sl-pro #welcomeOpen { padding: 13px 20px !important; border-radius: 12px !important; font-size: 15px !important; }
+body.sl-pro .welcomeMark { background: conic-gradient(from 200deg, #e8505b, #f39237, #f2cf2c, #41b883, #3b82f6, #a35bdc, #e8505b) !important; color: #fff !important; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1180px) {
+  body.sl-pro #backToStartBtn .lbl, body.sl-pro #logo small { display: none; }
+  #slTempo input[type="range"] { width: 100px; }
+}
+@media (max-width: 960px) {
+  body.sl-pro #topbar { height: auto !important; flex-wrap: wrap !important; padding: 8px 10px !important; row-gap: 6px; }
+  body.sl-pro #topbar .slSpacer { display: none; }
+  body.sl-pro #categoryBar { margin: 0 !important; }
+  #slTransport { overflow-x: auto; overflow-y: hidden; }
+  #slTransport > * { flex-shrink: 0; }
+  #slInstrumentChip .lbl { display: none; }
+  #slTransport { gap: 10px; padding: 0 10px; }
+  #slTransport .sep, #slMeter, #slTime { display: none; }
+  #slTempo input[type="range"] { display: none; }
+  body.sl-pro #slExportBtn .xl { display: none; }
+}
+@media (max-width: 640px) {
+  body.sl-pro #logo .word { display: none; }
+  body.sl-pro .categoryButton { padding: 6px 10px !important; }
+  body.sl-pro #instrumentName { max-width: 90px; }
+  #slTransport .undoGrp { display: none; }
+  body.sl-pro #scrollViewport { left: 40px !important; }
+  body.sl-pro #slRuler { width: 40px; }
+}
+</style>
+
 </head>
 
 <body>
@@ -4693,6 +5016,458 @@ document.getElementById("welcomeOpen").addEventListener("click", () => {
   requestAnimationFrame(() => document.getElementById("loadBtn").click());
 });
 
+</script>
+
+<script id="soundloom-pro-js">
+/* =====================================================================
+   SOUNDLOOM STUDIO — professional layer
+   Song Maker–style layout, pitch-colored notes, piano ruler, scale guide,
+   master bus with limiter + level meter, and WAV / MIDI export.
+   Wraps the original functions; song data and file format are unchanged.
+   ===================================================================== */
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const body = document.body;
+  body.classList.add("sl-pro");
+  document.title = "Soundloom Studio — Make music in your browser";
+
+  /* ---------- Palette ---------- */
+  // One color per pitch class, like Song Maker's rainbow grid.
+  const PITCH_COLORS = ["#e8505b","#ee6b4d","#f39237","#f5b031","#f2cf2c","#8cc63f","#41b883","#26b5a9","#2ba3d9","#3b82f6","#6d6af0","#a35bdc"];
+  const DRUM_COLORS = { kick: "#5b4fe0", snare: "#e8505b", hihat: "#f5b031", openhat: "#f39237", clap: "#41b883", tom: "#2ba3d9" };
+  const NOTE_NAMES = ["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
+  const BLACK = new Set([1,3,6,8,10]);
+  const SCALES = { chromatic: null, major: [0,2,4,5,7,9,11], minor: [0,2,3,5,7,8,10], pentatonic: [0,2,4,7,9] };
+  const KEY_SEMI = { C:0,"C#":1,Db:1,D:2,"D#":3,Eb:3,E:4,F:5,"F#":6,Gb:6,G:7,"G#":8,Ab:8,A:9,"A#":10,Bb:10,B:11 };
+  const midiOfRow = row => 83 - row;
+  const pcOfRow = row => ((midiOfRow(row) % 12) + 12) % 12;
+  const isDrum = inst => inst && inst.category === "drums";
+  const noteColor = (inst, row) => isDrum(inst) ? (DRUM_COLORS[inst.type] || "#5b4fe0") : PITCH_COLORS[pcOfRow(row)];
+  function scaleInfo() {
+    const scale = SCALES[state.scale] || null;
+    const tonic = KEY_SEMI[String(state.key || "C").replace("♯", "#")] ?? 0;
+    return { scale, tonic, inScale: pc => !scale || scale.includes(((pc - tonic) % 12 + 12) % 12) };
+  }
+
+  const ICON = {
+    back: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+    undo: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
+    redo: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>',
+    gear: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+    plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    trash: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>',
+    download: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>',
+    note: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 18.5A3.5 3.5 0 1 1 7 15.3V4l12-2v13.5a3.5 3.5 0 1 1-2-3.2V6.4l-8 1.4z"/></svg>',
+    drum: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="8" rx="9" ry="4"/><path d="M3 8v8c0 2.2 4 4 9 4s9-1.8 9-4V8"/></svg>',
+    chord: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="18" height="4" rx="1.5"/><rect x="3" y="10" width="18" height="4" rx="1.5" opacity=".75"/><rect x="3" y="16" width="18" height="4" rx="1.5" opacity=".5"/></svg>',
+    wave: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12h2M6 8v8M10 4v16M14 7v10M18 10v4M22 12h0"/></svg>',
+    midi: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M7 5v8M12 5v8M17 5v8"/></svg>',
+    file: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/></svg>'
+  };
+
+  /* ---------- Top bar ---------- */
+  const topbar = $("topbar");
+  $("logo").innerHTML = '<span class="slMark"><svg width="18" height="18" viewBox="0 0 52 52" fill="none"><path d="M5 28C10 28 10 17 15 17S20 35 25 35 30 12 35 12 40 28 47 28" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg></span><span class="word">Soundloom</span><small>Studio</small>';
+  const back = $("backToStartBtn");
+  back.innerHTML = ICON.back + '<span class="lbl">Home</span>';
+  back.style.display = "inline-flex"; back.style.alignItems = "center";
+  back.title = "Back to the start screen";
+  // Category switch moves into the centre of the top bar.
+  const cat = $("categoryBar");
+  back.after(cat);
+  cat.setAttribute("role", "tablist");
+
+  /* ---------- Bottom transport (Song Maker–style) ---------- */
+  const transport = document.createElement("div");
+  transport.id = "slTransport";
+  transport.innerHTML = `
+    <div class="grp" id="slPlayGrp"></div>
+    <div class="grp" id="slTimeGrp"><div id="slMeter" title="Output level"><i></i></div><div id="slTime">0:00.0</div></div>
+    <div class="sep"></div>
+    <div id="slTempo"><span class="lbl">Tempo</span><input id="slTempoSlider" type="range" min="30" max="300" step="1" aria-label="Tempo"></div>
+    <div class="sep"></div>
+    <div id="slInstrumentChip"><div class="swatch" id="slChipSwatch"></div><div class="meta"><span class="lbl">Instrument</span></div></div>
+    <div style="flex:1"></div>
+    <div class="grp undoGrp">
+      <button class="slIconBtn" id="slUndo" type="button" title="Undo (Ctrl+Z)" aria-label="Undo">${ICON.undo}</button>
+      <button class="slIconBtn" id="slRedo" type="button" title="Redo (Ctrl+Y)" aria-label="Redo">${ICON.redo}</button>
+      <button class="slIconBtn" id="slSettings" type="button" title="Song settings" aria-label="Settings">${ICON.gear}</button>
+    </div>
+    <button id="slExportBtn" type="button">${ICON.download}<span class="xl">Export</span></button>`;
+  $("workspace").after(transport);
+
+  $("slPlayGrp").appendChild($("playBtn"));
+  const bpmLabel = $("bpmInput").closest("label");
+  $("slTempo").appendChild(bpmLabel);
+  const chip = $("slInstrumentChip");
+  chip.querySelector(".meta").appendChild($("instrumentName"));
+  const chooseBtn = $("chooseInstrumentBtn"), addBtn = $("addInstrumentBtn"), removeBtn = $("removeInstrumentBtn");
+  chooseBtn.textContent = "Change"; chooseBtn.title = "Switch instrument in this category";
+  addBtn.innerHTML = ICON.plus; addBtn.classList.add("slIconBtn"); addBtn.title = "Add an instrument track"; addBtn.setAttribute("aria-label", "Add instrument");
+  removeBtn.innerHTML = ICON.trash; removeBtn.classList.add("slIconBtn"); removeBtn.setAttribute("aria-label", "Remove instrument");
+  chip.append(chooseBtn, addBtn, removeBtn);
+
+  // Spacer between categories and menus
+  const spacer = document.createElement("div"); spacer.className = "slSpacer";
+  cat.after(spacer);
+
+  // Proxy buttons mirror the originals (which stay in their menus).
+  const proxy = (pid, oid) => {
+    const p = $(pid), o = $(oid);
+    p.addEventListener("click", () => o.click());
+    const sync = () => { p.disabled = o.disabled; };
+    new MutationObserver(sync).observe(o, { attributes: true, attributeFilter: ["disabled"] });
+    sync();
+  };
+  proxy("slUndo", "undoBtn"); proxy("slRedo", "redoBtn"); proxy("slSettings", "settingsBtn");
+
+  // Play button: icon states driven by the original text labels.
+  const playBtn = $("playBtn");
+  const syncPlay = () => {
+    const t = playBtn.textContent || "";
+    const s = /Loading/i.test(t) ? "loading" : /Stop/i.test(t) ? "playing" : "stopped";
+    if (playBtn.dataset.state !== s) playBtn.dataset.state = s;
+    playBtn.setAttribute("aria-label", s === "playing" ? "Stop" : s === "loading" ? "Loading sounds" : "Play");
+    playBtn.title = s === "playing" ? "Stop" : s === "loading" ? "Loading instrument samples…" : "Play";
+  };
+  new MutationObserver(syncPlay).observe(playBtn, { childList: true, characterData: true, subtree: true });
+  syncPlay();
+
+  // Tempo slider <-> BPM field
+  const slider = $("slTempoSlider"), bpmInput = $("bpmInput");
+  const syncSlider = () => { if (document.activeElement !== slider) slider.value = state.bpm; if (document.activeElement !== bpmInput && +bpmInput.value !== state.bpm) bpmInput.value = state.bpm; };
+  slider.addEventListener("input", () => { bpmInput.value = slider.value; bpmInput.dispatchEvent(new Event("change", { bubbles: true })); });
+  bpmInput.addEventListener("change", () => setTimeout(syncSlider));
+  syncSlider();
+
+  /* ---------- Piano ruler ---------- */
+  const frame = $("gridFrame"), viewport = $("scrollViewport");
+  const ruler = document.createElement("div");
+  ruler.id = "slRuler";
+  ruler.innerHTML = '<div id="slRulerInner"></div><div id="slRulerDrum"></div>';
+  frame.insertBefore(ruler, viewport);
+  const rulerInner = $("slRulerInner");
+  const keys = [];
+  for (let row = 0; row < TOTAL_ROWS; row++) {
+    const k = document.createElement("div");
+    const pc = pcOfRow(row), midi = midiOfRow(row);
+    k.className = "slKey" + (BLACK.has(pc) ? " black" : "") + (pc === 0 ? " c" : "");
+    k.style.top = row * ROW_HEIGHT + "px";
+    k.style.height = ROW_HEIGHT + "px";
+    k.innerHTML = '<span class="pc" style="background:' + PITCH_COLORS[pc] + '"></span>' + NOTE_NAMES[pc] + (pc === 0 ? (Math.floor(midi / 12) - 1) : "");
+    k.title = NOTE_NAMES[pc] + (Math.floor(midi / 12) - 1);
+    k.addEventListener("pointerdown", e => { e.preventDefault(); const inst = getCurrentInstrument(); if (inst) { try { playChordAtCell(inst, -1, row); } catch (_) {} } });
+    rulerInner.appendChild(k); keys.push(k);
+  }
+  rulerInner.style.height = TOTAL_ROWS * ROW_HEIGHT + "px";
+  viewport.addEventListener("scroll", () => { rulerInner.style.transform = "translateY(" + -viewport.scrollTop + "px)"; }, { passive: true });
+
+  function refreshRuler() {
+    const { inScale, tonic, scale } = scaleInfo();
+    keys.forEach((k, row) => {
+      const pc = pcOfRow(row);
+      k.classList.toggle("out", !inScale(pc));
+      k.classList.toggle("tonic", !!scale && pc === tonic);
+    });
+    const inst = getCurrentInstrument();
+    body.classList.toggle("sl-drums", isDrum(inst));
+    $("slRulerDrum").textContent = inst ? inst.name : "";
+    // Instrument chip swatch
+    const sw = $("slChipSwatch");
+    if (inst) {
+      sw.innerHTML = inst.category === "drums" ? ICON.drum : inst.category === "chords" ? ICON.chord : ICON.note;
+      sw.style.background = inst.category === "drums" ? (DRUM_COLORS[inst.type] || "#5b4fe0") : inst.category === "chords" ? "linear-gradient(135deg,#f39237,#e8505b)" : "linear-gradient(135deg,#3b82f6,#a35bdc)";
+    }
+  }
+
+  /* ---------- Grid rendering ---------- */
+  createNoteElement = function (canvas, step, row, category) {
+    const inst = getCurrentInstrument();
+    const note = document.createElement("div");
+    note.className = "note" + (category === "drums" ? " sl-drum" : category === "chords" ? " sl-chord" : "");
+    const isD = category === "drums";
+    const size = Math.min(CELL_WIDTH - 4, ROW_HEIGHT - 4);
+    note.style.left = step * CELL_WIDTH + (isD ? (CELL_WIDTH - size) / 2 : 2) + "px";
+    note.style.top = row * ROW_HEIGHT + 2 + "px";
+    note.style.width = (isD ? size : CELL_WIDTH - 4) + "px";
+    const color = noteColor(inst, row);
+    note.style.background = color;
+    note.style.setProperty("--glow", color + "aa");
+    note.dataset.step = step; note.dataset.row = row;
+    canvas.appendChild(note);
+  };
+
+  const hover = document.createElement("div"); hover.id = "slHover";
+  const hoverCol = document.createElement("div"); hoverCol.id = "slHoverCol";
+  const lines = document.createElement("div"); lines.id = "slGridLines";
+
+  const origRenderGrid = renderGrid;
+  renderGrid = function () {
+    origRenderGrid.apply(this, arguments);
+    const canvas = $("canvas");
+    const cw = CELL_WIDTH, beat = getBeatSteps() * cw, bar = getMeasureSteps() * cw;
+    canvas.style.setProperty("--cw", cw + "px");
+    const css = getComputedStyle(body);
+    const L = css.getPropertyValue("--sl-line").trim(), B = css.getPropertyValue("--sl-line-beat").trim(), M = css.getPropertyValue("--sl-line-bar").trim();
+    lines.style.backgroundImage =
+      `repeating-linear-gradient(to right, transparent 0 ${bar - 2}px, ${M} ${bar - 2}px ${bar}px),` +
+      `repeating-linear-gradient(to right, transparent 0 ${beat - 1}px, ${B} ${beat - 1}px ${beat}px),` +
+      `repeating-linear-gradient(to right, transparent 0 ${cw - 1}px, ${L} ${cw - 1}px ${cw}px)`;
+    canvas.prepend(lines);
+    canvas.appendChild(hoverCol); canvas.appendChild(hover);
+    const { inScale, tonic, scale } = scaleInfo();
+    canvas.querySelectorAll(".row").forEach((el, row) => {
+      const pc = pcOfRow(row);
+      el.classList.toggle("sl-black", BLACK.has(pc) && !scale);
+      el.classList.toggle("sl-octave", pc === 0);
+      el.classList.toggle("sl-out", !inScale(pc));
+      el.classList.toggle("sl-tonic", !!scale && pc === tonic);
+    });
+    refreshRuler();
+  };
+
+  ["keySelect", "scaleSelect", "darkModeToggle"].forEach(id => { const el = $(id); if (el) el.addEventListener("change", () => setTimeout(renderGrid)); });
+
+  // Hover preview + ruler highlight
+  let hoverRow = -1;
+  viewport.addEventListener("pointermove", e => {
+    const { step, row } = getCellFromPointer(e);
+    const inst = getCurrentInstrument();
+    if (step < 0 || row < 0 || row >= TOTAL_ROWS || !inst || noteEditorActive) { hover.classList.remove("on"); return; }
+    const isD = isDrum(inst), size = Math.min(CELL_WIDTH - 4, ROW_HEIGHT - 4);
+    hover.style.left = step * CELL_WIDTH + (isD ? (CELL_WIDTH - size) / 2 : 2) + "px";
+    hover.style.top = row * ROW_HEIGHT + 2 + "px";
+    hover.style.width = (isD ? size : CELL_WIDTH - 4) + "px";
+    hover.style.height = ROW_HEIGHT - 4 + "px";
+    hover.style.borderRadius = isD ? "50%" : "5px";
+    hover.style.setProperty("--hc", noteColor(inst, row));
+    hover.classList.add("on");
+    hoverCol.style.left = step * CELL_WIDTH + "px"; hoverCol.style.width = CELL_WIDTH + "px"; hoverCol.classList.add("on");
+    if (hoverRow !== row) { if (keys[hoverRow]) keys[hoverRow].classList.remove("hover"); hoverRow = row; if (keys[row] && !isD) keys[row].classList.add("hover"); }
+  });
+  viewport.addEventListener("pointerleave", () => { hover.classList.remove("on"); hoverCol.classList.remove("on"); if (keys[hoverRow]) keys[hoverRow].classList.remove("hover"); hoverRow = -1; });
+
+  /* ---------- Note "hit" animation during playback ---------- */
+  const origPlayStep = playStep;
+  playStep = function (step, when) {
+    origPlayStep.apply(this, arguments);
+    const inst = getCurrentInstrument();
+    if (!inst || !inst.notes[step] || !inst.notes[step].length) return;
+    const ctx = getAudioContext();
+    const delay = Math.max(0, ((Number.isFinite(when) ? when : ctx.currentTime) - ctx.currentTime) * 1000);
+    setTimeout(() => {
+      if (!state.playing && Number.isFinite(when)) return;
+      document.querySelectorAll('#canvas .note[data-step="' + step + '"]').forEach(n => {
+        n.classList.add("sl-hit");
+        setTimeout(() => n.classList.remove("sl-hit"), Math.max(120, stepDuration() * 900));
+      });
+    }, delay);
+  };
+
+  /* ---------- Master bus: limiter, meter, recorder tap ---------- */
+  const nativeConnect = AudioNode.prototype.connect;
+  let master = null;
+  function ensureMaster(ctx) {
+    if (master && master.ctx === ctx) return master;
+    const input = ctx.createGain();
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -10; comp.knee.value = 6; comp.ratio.value = 8; comp.attack.value = 0.003; comp.release.value = 0.15;
+    const out = ctx.createGain(); out.gain.value = 0.95;
+    const analyser = ctx.createAnalyser(); analyser.fftSize = 1024;
+    const tap = ctx.createMediaStreamDestination ? ctx.createMediaStreamDestination() : null;
+    master = { ctx, input, out, analyser, tap };
+    nativeConnect.call(input, comp); nativeConnect.call(comp, out);
+    nativeConnect.call(out, ctx.destination); nativeConnect.call(out, analyser);
+    if (tap) nativeConnect.call(out, tap);
+    return master;
+  }
+  AudioNode.prototype.connect = function (dest) {
+    if (dest instanceof AudioDestinationNode && master && dest.context === master.ctx && this !== master.out) {
+      const args = Array.prototype.slice.call(arguments); args[0] = master.input;
+      return nativeConnect.apply(this, args);
+    }
+    return nativeConnect.apply(this, arguments);
+  };
+  const origGetCtx = getAudioContext;
+  getAudioContext = function () { const ctx = origGetCtx(); ensureMaster(ctx); return ctx; };
+
+  // Level meter + time readout
+  const meterBar = document.querySelector("#slMeter i"), timeEl = $("slTime");
+  const buf = new Float32Array(1024);
+  (function tick() {
+    if (master) {
+      master.analyser.getFloatTimeDomainData(buf);
+      let peak = 0; for (let i = 0; i < buf.length; i++) { const a = Math.abs(buf[i]); if (a > peak) peak = a; }
+      const db = 20 * Math.log10(peak || 1e-6);
+      meterBar.style.height = Math.max(0, Math.min(100, (db + 48) / 48 * 100)) + "%";
+    }
+    const sec = (state.playing ? state.playbackStep : 0) * stepDuration();
+    timeEl.textContent = Math.floor(sec / 60) + ":" + (sec % 60).toFixed(1).padStart(4, "0");
+    requestAnimationFrame(tick);
+  })();
+
+  /* ---------- Export: MIDI ---------- */
+  const GM_PROGRAM = { piano: 0, "chord-piano": 0, synth: 81, "chord-synth": 81, soft: 89, organ: 16, flute: 73, strings: 48, bass: 33, pluck: 24, "chord-guitar": 25 };
+  const GM_DRUM = { kick: 36, snare: 38, hihat: 42, openhat: 46, clap: 39, tom: 45 };
+  const CHORD_IV = { major:[0,4,7], minor:[0,3,7], "7":[0,4,7,10], maj7:[0,4,7,11], min7:[0,3,7,10], dim:[0,3,6], aug:[0,4,8], sus2:[0,2,7], sus4:[0,5,7] };
+  const SEMI = { C:0,"C#":1,D:2,"D#":3,E:4,F:5,"F#":6,G:7,"G#":8,A:9,"A#":10,B:11 };
+  const vlq = n => { const out = [n & 0x7f]; while ((n >>= 7)) out.unshift((n & 0x7f) | 0x80); return out; };
+  const str = s => Array.from(unescape(encodeURIComponent(s))).map(c => c.charCodeAt(0));
+  const u32 = n => [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255];
+  function track(events) {
+    events.sort((a, b) => a.t - b.t || a.o - b.o);
+    let last = 0; const bytes = [];
+    events.forEach(ev => { bytes.push(...vlq(ev.t - last), ...ev.d); last = ev.t; });
+    bytes.push(0, 0xff, 0x2f, 0);
+    return [...str("MTrk"), ...u32(bytes.length), ...bytes];
+  }
+  function buildMidi() {
+    const PPQ = 480, TPS = PPQ / 4;
+    const mpqn = Math.round(60000000 / state.bpm);
+    const ts = String(state.timeSignature).match(/^(\d+)\/(\d+)$/) || [0, 4, 4];
+    const conductor = [
+      { t: 0, o: 0, d: [0xff, 0x03, ...vlq(str("Soundloom").length), ...str("Soundloom")] },
+      { t: 0, o: 0, d: [0xff, 0x51, 3, (mpqn >> 16) & 255, (mpqn >> 8) & 255, mpqn & 255] },
+      { t: 0, o: 0, d: [0xff, 0x58, 4, +ts[1], Math.round(Math.log2(+ts[2])), 24, 8] }
+    ];
+    const tracks = [track(conductor)];
+    let ch = 0;
+    state.instruments.forEach(inst => {
+      const steps = Object.keys(inst.notes || {}).filter(s => (inst.notes[s] || []).length);
+      if (!steps.length) return;
+      const drum = isDrum(inst);
+      const channel = drum ? 9 : (ch === 9 ? ++ch : ch);
+      if (!drum) ch = (ch + 1) % 16;
+      const ev = [{ t: 0, o: 0, d: [0xff, 0x03, ...vlq(str(inst.name).length), ...str(inst.name)] }];
+      if (!drum) ev.push({ t: 0, o: 0, d: [0xc0 | channel, GM_PROGRAM[inst.type] || 0] });
+      const vol = Number.isFinite(inst.volume) ? inst.volume : 0.8;
+      steps.map(Number).forEach(step => {
+        inst.notes[step].forEach(row => {
+          const vel = Math.max(1, Math.min(127, Math.round(127 * vol * labGetVelocity(inst, step, row) / 0.8 * 0.85)));
+          let pitches, len = 1;
+          if (drum) pitches = [GM_DRUM[inst.type] || 36];
+          else if (String(inst.type).startsWith("chord-")) {
+            const chord = (inst.chords && inst.chords[step]) || { root: "C", quality: "major" };
+            const base = midiOfRow(row);
+            const root = base - (((base - (60 + (SEMI[chord.root] || 0))) % 12 + 12) % 12);
+            pitches = (CHORD_IV[chord.quality] || CHORD_IV.major).map(i => root + i);
+            len = 2;
+          } else pitches = [midiOfRow(row) - (inst.type === "bass" ? 12 : 0)];
+          pitches.forEach(p => {
+            if (p < 0 || p > 127) return;
+            ev.push({ t: step * TPS, o: 2, d: [0x90 | channel, p, vel] });
+            ev.push({ t: (step + len) * TPS - 1, o: 1, d: [0x80 | channel, p, 0] });
+          });
+        });
+      });
+      tracks.push(track(ev));
+    });
+    const header = [...str("MThd"), ...u32(6), 0, 1, (tracks.length >> 8) & 255, tracks.length & 255, (PPQ >> 8) & 255, PPQ & 255];
+    return new Uint8Array([...header, ...tracks.flat()]);
+  }
+
+  /* ---------- Export: WAV (real-time bounce of one pass) ---------- */
+  function encodeWav(audioBuffer) {
+    const chs = Math.min(2, audioBuffer.numberOfChannels), sr = audioBuffer.sampleRate, n = audioBuffer.length;
+    const data = new DataView(new ArrayBuffer(44 + n * chs * 2));
+    const w = (o, s) => { for (let i = 0; i < s.length; i++) data.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, "RIFF"); data.setUint32(4, 36 + n * chs * 2, true); w(8, "WAVE"); w(12, "fmt ");
+    data.setUint32(16, 16, true); data.setUint16(20, 1, true); data.setUint16(22, chs, true); data.setUint32(24, sr, true);
+    data.setUint32(28, sr * chs * 2, true); data.setUint16(32, chs * 2, true); data.setUint16(34, 16, true); w(36, "data"); data.setUint32(40, n * chs * 2, true);
+    const c = []; for (let i = 0; i < chs; i++) c.push(audioBuffer.getChannelData(i));
+    let off = 44;
+    for (let i = 0; i < n; i++) for (let k = 0; k < chs; k++) { const s = Math.max(-1, Math.min(1, c[k][i])); data.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7fff, true); off += 2; }
+    return new Blob([data], { type: "audio/wav" });
+  }
+  function download(blob, name) {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+  const fileStem = () => "soundloom-" + new Date().toISOString().slice(0, 10);
+
+  let bouncing = false;
+  async function bounceWav(setStatus, setProgress) {
+    if (bouncing) return; bouncing = true;
+    try {
+      if (state.playing) stopPlayback();
+      const ctx = getAudioContext(); await ctx.resume();
+      const m = ensureMaster(ctx);
+      if (!m.tap || !window.MediaRecorder) throw new Error("Audio recording isn't supported in this browser.");
+      setStatus("Loading instrument samples…");
+      const types = [...new Set(state.instruments.filter(i => Object.values(i.notes || {}).some(r => r && r.length)).map(i => i.type).filter(t => SOUNDFONT_PRESETS[t]))];
+      await Promise.all(types.map(t => getSoundfontInstrument(t)));
+      const info = playbackBounds();
+      const steps = info.sampleSongLooping ? 32 : info.loopLength;
+      const seconds = steps * stepDuration() + 1.2;
+      const loop = $("loopEnabled"), loopWas = loop.checked; loop.checked = false;
+      const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"].find(t => MediaRecorder.isTypeSupported(t)) || "";
+      const rec = new MediaRecorder(m.tap.stream, mime ? { mimeType: mime, audioBitsPerSecond: 256000 } : undefined);
+      const chunks = []; rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+      const done = new Promise(r => (rec.onstop = r));
+      rec.start(250);
+      await startPlayback();
+      const t0 = performance.now();
+      setStatus("Recording " + seconds.toFixed(1) + "s of audio — keep this tab open…");
+      await new Promise(res => {
+        const iv = setInterval(() => {
+          const p = (performance.now() - t0) / 1000 / seconds;
+          setProgress(Math.min(1, p));
+          if (p >= 1) { clearInterval(iv); res(); }
+        }, 100);
+      });
+      stopPlayback(); loop.checked = loopWas;
+      rec.stop(); await done;
+      setStatus("Encoding WAV…");
+      const blob = new Blob(chunks, { type: rec.mimeType || "audio/webm" });
+      try {
+        const decoded = await ctx.decodeAudioData(await blob.arrayBuffer());
+        download(encodeWav(decoded), fileStem() + ".wav");
+      } catch (_) {
+        download(blob, fileStem() + (/(ogg)/.test(blob.type) ? ".ogg" : /mp4/.test(blob.type) ? ".m4a" : ".webm"));
+      }
+      setStatus("Done — your audio file has been downloaded.");
+    } finally { bouncing = false; }
+  }
+
+  /* ---------- Export dialog ---------- */
+  const ov = document.createElement("div");
+  ov.id = "slExportOverlay"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true");
+  ov.innerHTML = `<div class="card">
+    <h2>Export your song</h2><p class="sub">Take your track into a DAW, share it, or keep a backup.</p>
+    <button class="opt" id="slExWav" type="button"><span class="ic" style="background:linear-gradient(135deg,#5b4fe0,#a35bdc)">${ICON.wave}</span><span><strong>Audio (WAV)</strong><span>Mixed-down stereo bounce of one full pass of the song.</span></span></button>
+    <button class="opt" id="slExMidi" type="button"><span class="ic" style="background:linear-gradient(135deg,#26b5a9,#3b82f6)">${ICON.midi}</span><span><strong>MIDI file</strong><span>Multi-track MIDI with tempo, instruments and drums on channel 10.</span></span></button>
+    <button class="opt" id="slExProj" type="button"><span class="ic" style="background:linear-gradient(135deg,#f39237,#e8505b)">${ICON.file}</span><span><strong>Soundloom project</strong><span>Editable project file you can open again later.</span></span></button>
+    <div class="progress"><i></i></div><p class="status" aria-live="polite"></p>
+    <div class="actions"><button id="slExClose" type="button">Close</button></div></div>`;
+  document.body.appendChild(ov);
+  const statusEl = ov.querySelector(".status"), progWrap = ov.querySelector(".progress"), progBar = ov.querySelector(".progress i");
+  const setStatus = s => (statusEl.textContent = s);
+  const setProgress = p => { progWrap.style.display = "block"; progBar.style.width = (p * 100).toFixed(1) + "%"; };
+  const openExport = () => { setStatus(""); progWrap.style.display = "none"; ov.classList.add("show"); };
+  const closeExport = () => { if (!bouncing) ov.classList.remove("show"); };
+  $("slExportBtn").addEventListener("click", openExport);
+  $("slExClose").addEventListener("click", closeExport);
+  ov.addEventListener("pointerdown", e => { if (e.target === ov) closeExport(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && ov.classList.contains("show")) { e.stopPropagation(); closeExport(); } }, true);
+  $("slExMidi").addEventListener("click", () => {
+    if (!state.instruments.some(i => Object.values(i.notes || {}).some(r => r && r.length))) return setStatus("Add some notes first.");
+    download(new Blob([buildMidi()], { type: "audio/midi" }), fileStem() + ".mid");
+    setStatus("MIDI file downloaded.");
+  });
+  $("slExProj").addEventListener("click", () => { $("saveBtn").click(); setStatus("Project file saved."); });
+  $("slExWav").addEventListener("click", () => {
+    if (!state.instruments.some(i => Object.values(i.notes || {}).some(r => r && r.length))) return setStatus("Add some notes first.");
+    bounceWav(setStatus, setProgress).catch(err => setStatus("Export failed: " + (err && err.message || err)));
+  });
+
+  // Expose for testing / power users
+  window.SoundloomStudio = { buildMidi, bounceWav };
+
+  // Re-render now that wrappers are in place.
+  renderCurrentInstrument();
+  setInterval(syncSlider, 600);
+})();
 </script>
 
 </body>
